@@ -1,5 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { Designation } from './designation.entity';
+import { Project } from './project.entity';
+import { ProjectEngineerRequirementSkill } from './projectEngineerRequirementSkill.entity';
 
 @Entity('project_engineer_requirements')
 export class ProjectEngineerRequirement {

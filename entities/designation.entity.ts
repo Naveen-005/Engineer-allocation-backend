@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { UserDesignation } from './userDesignation.entity';
-import { ProjectEngineerRequirementSkill } from './projectEngineerRequirement.entity';
+import { ProjectEngineerRequirement } from './projectEngineerRequirement.entity';
+// import { ProjectEngineerRequirementSkill } from './projectEngineerRequirementSkill.entity';
 
 @Entity('designation')
 export class Designation {
@@ -14,5 +15,5 @@ export class Designation {
   userDesignations: UserDesignation[];
 
   @OneToMany(() => ProjectEngineerRequirement, r => r.designation)
-  requirements: ProjectEngineerRequirementSkill[];
+  requirements: ProjectEngineerRequirement[];
 }

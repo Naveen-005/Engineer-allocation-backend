@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColum
 import { User } from './user.entity';
 import { ProjectUser } from './projectUser.entity';
 import { Note } from './note.entity';
-import { ProjectEngineerRequirementSkill } from './projectEngineerRequirement.entity';
+import { ProjectEngineerRequirement } from './projectEngineerRequirement.entity';
 
 @Entity('projects')
 export class Project {
@@ -36,5 +36,5 @@ export class Project {
   notes: Note[];
 
   @OneToMany(() => ProjectEngineerRequirement, r => r.project)
-  requirements: ProjectEngineerRequirementSkill[];
+  requirements: ProjectEngineerRequirement[];
 }
