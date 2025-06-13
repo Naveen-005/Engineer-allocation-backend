@@ -1,15 +1,26 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { Skill } from './skill.entity';
-@Entity('project_engineer_requirement_skills')
-export class ProjectEngineerRequirementSkill {
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import { Designation } from './designation.entity';
+
+@Entity('project_engineer_requirements')
+export class ProjectEngineerRequirement {
+    
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => ProjectEngineerRequirement, r => r.requirementSkills)
-  @JoinColumn({ name: 'requirement_id' })
-  requirement: ProjectEngineerRequirementSkill;
+  @ManyToOne(() => Project, p => p.requirements)
+  @JoinColumn({name:'project_id'})
+  project: ProjectEngineerRequirement;
 
-  @ManyToOne(() => Skill, s => s.requirementSkills)
-  @JoinColumn({ name: 'skill_id' })
-  skill: Skill;
+  @ManyToOne(() => Designation, d => d.requirements)
+  @JoinColumn({name:'designation_id'})
+  designation: Designation;
+
+  @Column()
+  required_count: number;
+
+  @Column({ default: false })
+  is_requested: boolean;
+
+  @OneToMany(() => ProjectEngineerRequirementSkill, rs => rs.requirement)
+  requirementSkills: ProjectEngineerRequirementSkill[];
 }

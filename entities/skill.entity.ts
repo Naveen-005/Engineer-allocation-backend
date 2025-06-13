@@ -1,6 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { UserSkill } from './userSkill.entity';
-import { ProjectEngineerRequirementSkill } from './projectEngineerRequirement.entity';
 
 @Entity('skills')
 export class Skill {
