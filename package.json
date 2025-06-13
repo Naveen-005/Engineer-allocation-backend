@@ -1,0 +1,29 @@
+{
+  "name": "engineer_mngmt",
+  "version": "1.0.0",
+  "description": "Engineer allocation platform",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "test-coverage": "jest --coverage",
+    "start": "node dist/app.js",
+    "build": "rm -rf dist && npx tsc",
+    "start-server": "npx tsc && node dist/app.js",
+    "migration:create": "npm run build && npx typeorm migration:create",
+    "migration:generate": "npm run build && npx typeorm migration:generate -d dist/db/data-source.js",
+    "migration:run": "npm run build && npx typeorm migration:run -d dist/db/data-source.js",
+    "migration:revert": "npm run build && npx typeorm migration:revert -d dist/db/data-source.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "typeorm": "^0.3.24",
+    "typeorm-naming-strategies": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.1"
+  }
+}
