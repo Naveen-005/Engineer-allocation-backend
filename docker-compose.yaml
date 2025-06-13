@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  postgres-db:
+    image: postgres
+    container_name: eap_db
+    ports:
+      - "5437:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    restart: unless-stopped
