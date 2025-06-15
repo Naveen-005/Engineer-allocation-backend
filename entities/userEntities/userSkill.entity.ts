@@ -1,11 +1,10 @@
 import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
+import AbstractEntity from '../abstract.entity';
 import { User } from './user.entity';
-import { Skill } from './skill.entity';
+import { Skill } from '../skill.entity';
 
 @Entity('user_skills')
-export class UserSkill {
-  @PrimaryGeneratedColumn()
-  id: number;
+export class UserSkill extends AbstractEntity {
 
   @ManyToOne(() => User, user => user.userSkills)
   @JoinColumn({ name: 'user_id' })

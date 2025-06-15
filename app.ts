@@ -5,19 +5,20 @@ import { errorMiddleware } from "./middlewares/errorMiddleware";
 import {authRouter} from "./routes/auth.route"
 
 import cors from "cors";
+import projectRouter from "./routes/project.route";
 
 const server = express();
 
 server.use(cors())
 server.use(express.json());
 
-
 server.get("/", (req: Request, res: Response) => {
   res.status(200).send("Hello world");
 });
 
 
-server.use("/auth",authRouter);
+server.use("/auth", authRouter);
+server.use("/project", projectRouter)
 
 server.use(errorMiddleware);
 

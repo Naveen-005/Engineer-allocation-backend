@@ -18,6 +18,7 @@
     "migration:revert": "npm run build && npx typeorm migration:revert -d dist/db/data-source.js"
   },
   "dependencies": {
+    "class-validator": "^0.14.2",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "pg": "^8.16.0",

@@ -1,9 +1,11 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { UserSkill } from './userSkill.entity';
-import { ProjectEngineerRequirementSkill } from './projectEngineerRequirementSkill.entity';
+import { ProjectEngineerRequirementSkill } from './projectEntities/projectEngineerRequirementSkill.entity';
+import { UserSkill } from './userEntities/userSkill.entity';
+import AbstractEntity from './abstract.entity';
+
 
 @Entity('skills')
-export class Skill {
+export class Skill extends AbstractEntity {
   @PrimaryGeneratedColumn()
   skill_id: number;
 
