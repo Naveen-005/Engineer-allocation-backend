@@ -11,7 +11,7 @@ export class ProjectEngineerRequirement {
 
   @ManyToOne(() => Project, p => p.requirements)
   @JoinColumn({name:'project_id'})
-  project: ProjectEngineerRequirement;
+  project: Project;
 
   @ManyToOne(() => Designation, d => d.requirements)
   @JoinColumn({name:'designation_id'})

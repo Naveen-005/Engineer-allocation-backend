@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import dataSource from "./db/data-source";
+import noteRouter from "./routes/note.route";
 
 import { errorMiddleware } from "./middlewares/errorMiddleware";
 import {authRouter} from "./routes/auth.route"
@@ -18,6 +19,7 @@ server.get("/", (req: Request, res: Response) => {
 
 
 server.use("/auth",authRouter);
+server.use("/projects", noteRouter);
 
 server.use(errorMiddleware);
 
