@@ -14,6 +14,9 @@ class UserController {
     router.get("/:id", this.getUserById.bind(this));
     router.put("/:id", this.updateUser);
     router.delete("/:id", this.deleteUser);
+    router.patch("/:id/skills/append", this.appendSkills);
+    router.patch("/:id/experience", this.updateExperience);
+
   }
 
   public async createUser(req: Request, res: Response, next: NextFunction) {
@@ -86,6 +89,40 @@ class UserController {
       next(error);
     }
   };
+
+  public appendSkills = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const id = Number(req.params.id);
+      const { skill_ids } = req.body;
+
+      const user = await this.userService.appendSkillsToUser(id, skill_ids);
+      res.status(200).json(user);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public updateExperience = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const id = Number(req.params.id);
+      const { experience } = req.body;
+
+      const user = await this.userService.updateUserExperience(id, experience);
+      res.status(200).json(user);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+
 }
 
 export default UserController;

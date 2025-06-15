@@ -72,33 +72,34 @@ class UserService {
     user.name = dto.name;
     user.email = dto.email;
     user.joined_at = dto.joined_at ? new Date(dto.joined_at) : user.joined_at;
-    user.experience = dto.experience ?? user.experience;
 
     if (dto.password) {
       user.password = await bcrypt.hash(dto.password, 10);
     }
 
-    const roleRepo = datasource.getRepository(Role);
-    const role = await roleRepo.findOneBy({ role_id: dto.role_id });
+    const role = await this.roleRepository.findOneBy({ role_id: dto.role_id });
     if (!role) throw new Error(`Role with ID ${dto.role_id} not found`);
     user.role = role;
 
     await this.userRepository.update(id, user);
 
-    const userSkillRepo = datasource.getRepository(UserSkill);
-    const skillRepo = datasource.getRepository(Skill);
-    const userDesignationRepo = datasource.getRepository(UserDesignation);
-    const designationRepo = datasource.getRepository(Designation);
-
+    // Append new skills without removing existing ones
     if (dto.skill_ids && dto.skill_ids.length > 0) {
-      await this.handleUserSkills(user, dto.skill_ids);
+      await this.appendSkillsToUser(id, dto.skill_ids);
     }
 
+    // Update experience (if provided)
+    if (dto.experience !== undefined) {
+      await this.updateUserExperience(id, dto.experience);
+    }
+
+    // Update designation (if provided)
     if (dto.designation_id) {
       await this.handleUserDesignation(user, dto.designation_id);
     }
 
-    return user;
+    // fresh fetch with updated relations
+    return this.userRepository.findOneById(id);
   }
 
   async deleteUser(id: number): Promise<void> {
@@ -146,6 +147,44 @@ class UserService {
     });
 
     await this.userSkillRepository.save(userSkills);
+  }
+
+  async appendSkillsToUser(userId: number, skillIds: number[]): Promise<User> {
+    const user = await this.userRepository.findOneById(userId);
+    if (!user) throw new Error("User not found");
+
+    const existingSkillIds = user.userSkills.map((us) => us.skill.skill_id);
+    const newSkillIds = skillIds.filter((id) => !existingSkillIds.includes(id));
+
+    if (newSkillIds.length > 0) {
+      const skills = await this.skillRepository.findBy({
+        skill_id: In(newSkillIds),
+      });
+
+      const newUserSkills = skills.map((skill) => {
+        const us = new UserSkill();
+        us.user = user;
+        us.skill = skill;
+        return us;
+      });
+
+      await this.userSkillRepository.save(newUserSkills);
+    }
+
+    return this.userRepository.findOneById(userId); // return updated user
+  }
+
+  async updateUserExperience(
+    userId: number,
+    experience: number
+  ): Promise<User> {
+    const user = await this.userRepository.findOneById(userId);
+    if (!user) throw new Error("User not found");
+
+    user.experience = experience;
+    await this.userRepository.update(userId, user);
+
+    return this.userRepository.findOneById(userId); // return updated user
   }
 }
 
