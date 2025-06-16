@@ -1,16 +1,36 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
-import { Role } from './role.entity';
+import { Role } from '../role.entity';
+import { Note } from '../note.entity';
+import AbstractEntity from '../abstract.entity';
 import { UserSkill } from './userSkill.entity';
-import { Project } from './project.entity';
-import { ProjectUser } from './projectUser.entity';
+import { Project } from '../projectEntities/project.entity';
+import { ProjectUser } from '../projectEntities/projectUser.entity';
 import { UserDesignation } from './userDesignation.entity';
-import { Note } from './note.entity';
 
 
 @Entity('users')
-export class User {
-  @PrimaryGeneratedColumn()
-  user_id: number;
+export class User extends AbstractEntity {
+    constructor(
+    user_id?: string,
+    email?: string,
+    name?: string,
+    password?: string,
+    joined_at?: Date,
+    experience?: number,
+    role?: Role
+  ) {
+    super();
+    if (user_id !== undefined) this.user_id = user_id;
+    if (email) this.email = email;
+    if (name) this.name = name;
+    if (password) this.password = password;
+    if (joined_at) this.joined_at = joined_at;
+    if (experience !== undefined) this.experience = experience;
+    if (role) this.role = role;
+  }
+  
+  @Column()
+  user_id: string;
 
   @Column()
   name: string;
