@@ -75,6 +75,18 @@ class ProjectService {
     }
   }
 
+  async getProjectsByUserId(userId: number): Promise<Project[]> {
+    try {
+      const projects = await this.projectRepository.findByEmployeeId(userId);
+      return projects;
+    } catch (error) {
+      throw new HttpException(
+        500,
+        `Failed to retrieve projects for employee ${userId}: ${error.message}`
+      );
+    }
+  }
+
   async updateProject(id: number, updateProjectDto: UpdateProjectDto) {
     try {
       const project = await this.projectRepository.findOneById(id);
