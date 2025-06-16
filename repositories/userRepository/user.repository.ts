@@ -4,6 +4,7 @@ import { User } from "../../entities/userEntities/user.entity";
 class UserRepository {
   constructor(private repository: Repository<User>) {}
 
+
   async create(user: User): Promise<User> {
     return this.repository.save(user);
   }
