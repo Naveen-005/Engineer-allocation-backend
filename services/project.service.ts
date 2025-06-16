@@ -3,14 +3,21 @@ import { UpdateProjectDto } from "../dto/projectDto/updateProjectDto";
 import CreateRequirementDto from "../dto/requirementDto/createRequirementDto";
 import { Project } from "../entities/projectEntities/project.entity";
 import { ProjectEngineerRequirement } from "../entities/projectEntities/projectEngineerRequirement.entity";
-import { Designation } from "../entities/userEntities/designation.entity";
+
 import { User } from "../entities/userEntities/user.entity";
 import HttpException from "../exceptions/httpException";
 import ProjectRepository from "../repositories/projectRepository/project.repository";
+import UserService from "./user.service";
+import { ProjectUser } from "../entities/projectEntities/projectUser.entity";
+import { Designation } from "../entities/userEntities/designation.entity";
+import {DesignationService} from "./designation.service";
 import ProjectEngineerRequirementRepository from "../repositories/requirement.repository";
 
 class ProjectService {
-  constructor(private projectRepository: ProjectRepository) {}
+  constructor(private projectRepository: ProjectRepository,
+    private userService: UserService,
+    private designationService: DesignationService
+   ) {}
   async createProject(createProjectDto: CreateProjectDto): Promise<Project> {
     try {
       const newProject = new Project(
@@ -179,6 +186,31 @@ class ProjectService {
       throw new HttpException(
         500,
         `Failed to delete deparprojecttment with ID ${id}: ${error.message}`
+      );
+    }
+  }
+
+  async assignEngineerToProject(id: number, userIds: string[], engineers: {user_id:string,designation_id:number}[]): Promise<void> {
+    try {
+      const project = await this.projectRepository.findOneById(id);
+      if (!project) {
+        throw new HttpException(404, `Project with ID ${id} not found`);
+      }
+
+      const projectUsers = await Promise.all(engineers.map(async engineer => {
+        const projectUser = new ProjectUser();
+        projectUser.project = project;
+        projectUser.user = await this.userService.getUserById(engineer.user_id);
+        projectUser.designation = await this.designationService.getDesignationById(engineer.designation_id);
+        projectUser.assigned_on = new Date();
+        return projectUser;
+      }));
+
+      await this.projectRepository.saveProjectUsers(projectUsers);
+    } catch (error) {
+      throw new HttpException(
+        500,
+        `Failed to assign engineers to project: ${error.message}`
       );
     }
   }
