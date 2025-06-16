@@ -12,6 +12,7 @@ class UserController {
   constructor(private userService: UserService, router: Router) {
     router.post("/", this.createUser.bind(this));
     router.get("/", this.getAllUsers.bind(this));
+    router.get("/available", this.getAllAvailableUsers.bind(this))
     router.get("/:id", this.getUserById.bind(this));
     router.put("/:id", this.updateUser);
     router.delete("/:id", this.deleteUser);
@@ -38,6 +39,15 @@ class UserController {
   public async getAllUsers(req: Request, res: Response, next: NextFunction) {
     try {
       const users = await this.userService.getAllUsers();
+      res.status(200).json(users);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async getAllAvailableUsers(req: Request, res: Response, next: NextFunction) {
+    try {
+      const users = await this.userService.getAvailableUsers();
       res.status(200).json(users);
     } catch (error) {
       next(error);

@@ -68,6 +68,11 @@ class UserService {
     return this.userRepository.findByEmail(email);
   }
 
+  async getAvailableUsers() : Promise<User[]>{
+    const users = await this.userRepository.findMany();
+    return users.filter(user => ((user.projectUsers.length+ user.leadProjects.length + user.managedProjects.length )<2));
+  }
+
   async updateUser(id: string, dto: UpdateUserDto): Promise<User> {
     const user = await this.userRepository.findOneById(id);
     if (!user) throw new Error("User not found");
