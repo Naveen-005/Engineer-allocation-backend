@@ -1,9 +1,13 @@
 import { CreateProjectDto } from "../dto/projectDto/createProjectDto";
 import { UpdateProjectDto } from "../dto/projectDto/updateProjectDto";
+import CreateRequirementDto from "../dto/requirementDto/createRequirementDto";
 import { Project } from "../entities/projectEntities/project.entity";
+import { ProjectEngineerRequirement } from "../entities/projectEntities/projectEngineerRequirement.entity";
+import { Designation } from "../entities/userEntities/designation.entity";
 import { User } from "../entities/userEntities/user.entity";
 import HttpException from "../exceptions/httpException";
 import ProjectRepository from "../repositories/projectRepository/project.repository";
+import ProjectEngineerRequirementRepository from "../repositories/requirement.repository";
 
 class ProjectService {
   constructor(private projectRepository: ProjectRepository) {}
@@ -22,8 +26,28 @@ class ProjectService {
         { id: createProjectDto.pmId } as User,
         { id: createProjectDto.leadId } as User
       );
+      if (
+        createProjectDto.requirements &&
+        createProjectDto.requirements.length > 0
+      ) {
+      }
 
-      return await this.projectRepository.create(newProject);
+      const savedProject = await this.projectRepository.create(newProject);
+
+      if (createProjectDto.requirements) {
+        const requirementRepo = new ProjectEngineerRequirementRepository();
+
+        //loop through each requirement
+        for (const req of createProjectDto.requirements) {
+          await requirementRepo.create({
+            project: savedProject,
+            designation: { id: req.designation_id } as Designation,
+            required_count: req.required_count,
+            is_requested: req.is_requested,
+          });
+        }
+        return savedProject;
+      }
     } catch (error) {
       throw new HttpException(
         500,
@@ -161,3 +185,32 @@ class ProjectService {
 }
 
 export default ProjectService;
+
+
+/*
+EXAMPLE BODY
+
+CREATE PROJECT :
+    {
+      "project_id": 1000,
+      "name": "Engineer Allocation Project",
+      "startdate": "2025-06-15T00:00:00Z",
+      "enddate": "2025-09-15T00:00:00Z",
+      "status": "In Progress",
+      "pmId": 25,
+      "leadId": 23,
+      "requirements" : 
+      [{
+          "required_count" : 1,
+          "designation_id" : 1,
+          "is_requested" : false
+      },
+      {
+          "required_count" : 4,
+          "designation_id" : 2,
+          "is_requested" : false
+      }
+      ]
+    }
+
+*/

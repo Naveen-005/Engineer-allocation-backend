@@ -1,4 +1,6 @@
-import { IsString, IsOptional, IsDateString, IsInt, IsNumber } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsString, IsOptional, IsDateString, IsInt, IsNumber, IsArray, ValidateNested } from 'class-validator';
+import CreateRequirementDto from '../requirementDto/createRequirementDto';
 
 export class CreateProjectDto {
 
@@ -25,4 +27,9 @@ export class CreateProjectDto {
 
   @IsInt()
   leadId: number; 
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreateRequirementDto)
+  requirements: CreateRequirementDto[];
 }
