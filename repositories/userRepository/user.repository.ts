@@ -1,5 +1,5 @@
 import { Repository } from "typeorm";
-import { User } from "../entities/user.entity";
+import { User } from "../../entities/userEntities/user.entity";
 
 class UserRepository {
   constructor(private repository: Repository<User>) {}
@@ -28,7 +28,7 @@ class UserRepository {
     });
   }
 
-  async findOneById(id: number): Promise<User | null> {
+  async findOneById(id: string): Promise<User | null> {
     return this.repository.findOne({
       where: { user_id: id },
       relations: {
@@ -53,12 +53,12 @@ class UserRepository {
     return this.repository.findOneBy({ email });
   }
 
-  async update(id: number, user: User): Promise<void> {
+  async update(id: string, user: User): Promise<void> {
     await this.repository.save({ user_id: id, ...user });
   }
 
-  async delete(id: number): Promise<void> {
-    await this.repository.softDelete({ user_id: id });
+  async delete(id: string): Promise<void> {
+    await this.repository.softDelete(id);
   }
 }
 

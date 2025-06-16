@@ -14,6 +14,10 @@ import {
 export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
+  user_id: string;
+  
+  @IsString()
+  @IsNotEmpty()
   name: string;
 
   @IsEmail()

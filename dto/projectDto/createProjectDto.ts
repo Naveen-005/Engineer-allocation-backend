@@ -3,7 +3,7 @@ import { IsString, IsOptional, IsDateString, IsInt, IsNumber } from 'class-valid
 export class CreateProjectDto {
 
   @IsNumber()
-  project_id : number;
+  project_id : string;
 
   @IsString()
   name: string;

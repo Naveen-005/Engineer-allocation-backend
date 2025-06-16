@@ -7,6 +7,7 @@ import HttpException from "../exceptions/httpException";
 import UserService from "../services/user.service";
 // import { authorizationMiddleware } from "../middlewares/authorization.middleware";
 
+//id references user_id not primary key (id)
 class UserController {
   constructor(private userService: UserService, router: Router) {
     router.post("/", this.createUser.bind(this));
@@ -45,7 +46,7 @@ class UserController {
 
   public async getUserById(req: Request, res: Response, next: NextFunction) {
     try {
-      const id = Number(req.params.id);
+      const id = String(req.params.id);
       const user = await this.userService.getUserById(id);
       if (!user) {
         throw new HttpException(404, "User not found");
@@ -62,7 +63,7 @@ class UserController {
     next: NextFunction
   ) => {
     try {
-      const id = Number(req.params.id);
+      const id = String(req.params.id);
       const updateUserDto = plainToInstance(UpdateUserDto, req.body);
       const errors = await validate(updateUserDto);
       if (errors.length > 0) {
@@ -82,7 +83,7 @@ class UserController {
     next: NextFunction
   ) => {
     try {
-      const id = Number(req.params.id);
+      const id = String(req.params.id);
       await this.userService.deleteUser(id);
       res.status(200).json({ message: "User deleted successfully" });
     } catch (error) {
@@ -96,7 +97,7 @@ class UserController {
     next: NextFunction
   ) => {
     try {
-      const id = Number(req.params.id);
+      const id = String(req.params.id);
       const { skill_ids } = req.body;
 
       const user = await this.userService.appendSkillsToUser(id, skill_ids);
@@ -112,7 +113,7 @@ class UserController {
     next: NextFunction
   ) => {
     try {
-      const id = Number(req.params.id);
+      const id = String(req.params.id);
       const { experience } = req.body;
 
       const user = await this.userService.updateUserExperience(id, experience);
