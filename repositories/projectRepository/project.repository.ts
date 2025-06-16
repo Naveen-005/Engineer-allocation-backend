@@ -45,6 +45,19 @@ class ProjectRepository {
     });
   }
 
+  async findByEmployeeId(userId: number): Promise<Project[]> {
+    return this.repository.find({
+      relations: {
+        projectUsers: true
+      },
+      where: [
+        { pm: { id: userId } },
+        { lead: { id: userId } },
+        { projectUsers: { user: { id: userId} } },
+      ],
+    });
+  }
+
   async update(id: number, project: Project) {
     await this.repository.save({ id, ...project });
   }

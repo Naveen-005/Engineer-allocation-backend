@@ -10,6 +10,7 @@ export default class ProjectController {
     router.post("/", this.createProject.bind(this));
     router.get("/", checkRole(["HR"]),this.getAllProjects.bind(this));
     router.get("/:id", this.getProjectById.bind(this));
+    router.get("/user/:userId", this.getProjectsByUserId.bind(this));
     router.put("/:id", this.updateProject.bind(this));
     router.delete("/:id", this.deleteProject.bind(this));
   }
@@ -47,6 +48,22 @@ export default class ProjectController {
         );
       }
       resp.status(200).send(project);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getProjectsByUserId(req: Request, resp: Response, next: NextFunction) {
+    try {
+      const userId = Number(req.params.userId);
+      const projects = await this.projectService.getProjectsByUserId(userId);
+      if (!projects || projects.length === 0) {
+        throw new HttpException(
+          404,
+          `No projects found for employee with ID ${userId}`
+        );
+      }
+      resp.status(200).send(projects);
     } catch (error) {
       next(error);
     }
