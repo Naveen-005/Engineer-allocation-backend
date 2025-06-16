@@ -1,13 +1,14 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { ProjectEngineerRequirement } from '../projectEntities/projectEngineerRequirement.entity';
 import { UserDesignation } from './userDesignation.entity';
-import { ProjectEngineerRequirement } from './projectEngineerRequirement.entity';
-// import { ProjectEngineerRequirementSkill } from './projectEngineerRequirementSkill.entity';
+import AbstractEntity from '../abstract.entity';
 
 @Entity('designation')
-export class Designation {
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class Designation extends AbstractEntity{
+  constructor(name?: string) {
+    super();
+    if (name) this.name = name;
+  }
   @Column({ unique: true })
   name: string;
 

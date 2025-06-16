@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
-import { Designation } from './designation.entity';
+import { Designation } from '../userEntities/designation.entity';
 import { Project } from './project.entity';
 import { ProjectEngineerRequirementSkill } from './projectEngineerRequirementSkill.entity';
 
