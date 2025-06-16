@@ -10,7 +10,8 @@ export class ProjectUser extends AbstractEntity {
     user?: User,
     is_shadow: boolean = false,
     assigned_on?: Date,
-    end_date?: Date
+    end_date?: Date,
+    designation_id?: number
   ) {
     super();
     if (project) this.project = project;

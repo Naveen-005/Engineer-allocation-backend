@@ -12,15 +12,9 @@ class UserRepository {
     return this.repository.find({
       relations: {
         role: true,
-        userSkills: {
-          skill: true,
-        },
-        projectUsers: {
-          project: true,
-        },
-        designations: {
-          designation: true,
-        },
+        userSkills: { skill: true },
+        projectUsers: true,
+        designations: { designation: true },
         notes: true,
         leadProjects: true,
         managedProjects: true,
@@ -33,20 +27,15 @@ class UserRepository {
       where: { user_id: id },
       relations: {
         role: true,
-        userSkills: {
-          skill: true,
-        },
-        projectUsers: {
-          project: true,
-        },
-        designations: {
-          designation: true,
-        },
+        userSkills: { skill: true }, 
+        projectUsers: true,
+        designations: { designation: true }, 
         notes: true,
         leadProjects: true,
         managedProjects: true,
       },
     });
+    
   }
 
   async findByEmail(email: string): Promise<User | null> {
@@ -63,7 +52,7 @@ class UserRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await this.repository.softDelete(id);
+    await this.repository.softDelete({ user_id: id });
   }
 }
 

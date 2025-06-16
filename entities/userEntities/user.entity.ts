@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn, Unique } from 'typeorm';
 import { Role } from '../role.entity';
 import { Note } from '../note.entity';
 import AbstractEntity from '../abstract.entity';
@@ -29,7 +29,7 @@ export class User extends AbstractEntity {
     if (role) this.role = role;
   }
   
-  @Column()
+  @Column({ unique: true })
   user_id: string;
 
   @Column()
