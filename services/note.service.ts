@@ -16,7 +16,6 @@ export class NoteService {
   async addNote(dto: CreateNoteDto): Promise<Note> {
     const project = await this.projectRepo.findOneByProjectId(dto.projectId );
     const author = await this.userRepo.findOneById(dto.authorId);
-    console.log(project)
 
     if (!project || !author) {
       throw new Error('Project or Author not found');
