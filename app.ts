@@ -5,6 +5,7 @@ import { errorMiddleware } from "./middlewares/errorMiddleware";
 import {authRouter} from "./routes/auth.route"
 
 import cors from "cors";
+import userRouter from "./routes/user.route";
 
 const server = express();
 
@@ -19,6 +20,8 @@ server.get("/", (req: Request, res: Response) => {
 
 server.use("/auth",authRouter);
 
+server.use("/users", userRouter); 
+
 server.use(errorMiddleware);
 
 (async()=>{
@@ -29,8 +32,8 @@ server.use(errorMiddleware);
     console.error(`Failed to connect to DB - ${e}`)
     process.exit(1);
   }
-  server.listen(3000, () => {
-    console.info("server listening to 3000");
+  server.listen(5000, () => {
+    console.info("server listening to 5000");
   });
 })();
 
