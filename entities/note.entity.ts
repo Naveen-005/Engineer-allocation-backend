@@ -1,10 +1,9 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { User } from './user.entity';
 import { Project } from './project.entity';
+import AbstractEntity from './abstract.entity';
 @Entity('notes')
-export class Note {
-  @PrimaryGeneratedColumn()
-  noteid: number;
+export class Note extends AbstractEntity{
 
   @ManyToOne(() => Project, project => project.notes)
   @JoinColumn({ name: 'p_id' })
