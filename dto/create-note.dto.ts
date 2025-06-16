@@ -1,11 +1,11 @@
 import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class CreateNoteDto {
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
   projectId: string;
 
-  @IsNumber()
+  @IsString()
   @IsNotEmpty()
   authorId: string;
 

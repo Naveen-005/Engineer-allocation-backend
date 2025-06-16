@@ -2,11 +2,11 @@ import { IsNotEmpty, IsNumber, IsString, IsOptional } from 'class-validator';
 
 export class UpdateNoteDto {
   @IsOptional()
-  @IsNumber()
+  @IsString()
   projectId?: string;
 
   @IsOptional()
-  @IsNumber()
+  @IsString()
   authorId?: string;
 
   @IsOptional()

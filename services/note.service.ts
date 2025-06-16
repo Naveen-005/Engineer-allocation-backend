@@ -6,16 +6,17 @@ import { UpdateNoteDto } from '../dto/update-note.dto';
 import { User } from '../entities/userEntities/user.entity';
 import { Project } from '../entities/projectEntities/project.entity';
 import ProjectRepository from '../repositories/projectRepository/project.repository';
+import UserRepository from '../repositories/userRepository/user.repository';
 
 export class NoteService {
   private noteRepo = dataSource.getRepository(Note);
-  private userRepo = dataSource.getRepository(User);
+  private userRepo = new UserRepository(dataSource.getRepository(User));
   private projectRepo = new ProjectRepository(dataSource.getRepository(Project));
 
   async addNote(dto: CreateNoteDto): Promise<Note> {
     const project = await this.projectRepo.findOneByProjectId(dto.projectId );
-    const author = await this.userRepo.findOneBy({ user_id: dto.authorId });
-
+    const author = await this.userRepo.findOneById(dto.authorId);
+    console.log(project)
 
     if (!project || !author) {
       throw new Error('Project or Author not found');
