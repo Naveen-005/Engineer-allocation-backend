@@ -8,6 +8,7 @@ import {authRouter} from "./routes/auth.route"
 import cors from "cors";
 import projectRouter from "./routes/project.route";
 import userRouter from "./routes/user.route";
+import { authMiddleware } from "./middlewares/authMiddleware";
 
 const server = express();
 
@@ -20,7 +21,7 @@ server.get("/", (req: Request, res: Response) => {
 
 
 server.use("/auth",authRouter);
-server.use("/project", projectRouter)
+server.use("/project", authMiddleware, projectRouter)
 server.use("/projects", noteRouter);
 
 server.use("/users", userRouter); 

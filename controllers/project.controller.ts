@@ -3,11 +3,12 @@ import { UpdateProjectDto } from "../dto/projectDto/updateProjectDto";
 import HttpException from "../exceptions/httpException";
 import ProjectService from "../services/project.service";
 import { Request, Response, Router, NextFunction } from "express";
+import { checkRole } from "../middlewares/authorizationMiddleware";
 
 export default class ProjectController {
   constructor(private projectService: ProjectService, router: Router) {
     router.post("/", this.createProject.bind(this));
-    router.get("/", this.getAllProjects.bind(this));
+    router.get("/", checkRole(["HR"]),this.getAllProjects.bind(this));
     router.get("/:id", this.getProjectById.bind(this));
     router.put("/:id", this.updateProject.bind(this));
     router.delete("/:id", this.deleteProject.bind(this));
