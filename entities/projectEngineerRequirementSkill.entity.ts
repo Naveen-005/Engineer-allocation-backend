@@ -10,9 +10,9 @@ export class ProjectEngineerRequirementSkill {
 
   @ManyToOne(() => ProjectEngineerRequirement, r => r.requirementSkills)
   @JoinColumn({ name: 'requirement_id' })
-  requirement: ProjectEngineerRequirementSkill;
+  requirement: ProjectEngineerRequirement;
 
   @ManyToOne(() => Skill, s => s.requirementSkills)
   @JoinColumn({ name: 'skill_id' })
-  skill: UserSkill;
+  skill: Skill;
 }
