@@ -2,13 +2,11 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColum
 import { Designation } from '../userEntities/designation.entity';
 import { Project } from './project.entity';
 import { ProjectEngineerRequirementSkill } from './projectEngineerRequirementSkill.entity';
+import AbstractEntity from '../abstract.entity';
 
 @Entity('project_engineer_requirements')
-export class ProjectEngineerRequirement {
+export class ProjectEngineerRequirement extends AbstractEntity {
     
-  @PrimaryGeneratedColumn()
-  id: number;
-
   @ManyToOne(() => Project, p => p.requirements)
   @JoinColumn({name:'project_id'})
   project: Project;

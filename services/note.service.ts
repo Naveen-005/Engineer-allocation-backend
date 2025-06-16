@@ -1,17 +1,19 @@
 import { Note } from '../entities/note.entity';
-import { User } from '../entities/user.entity';
-import { Project } from '../entities/project.entity';
+
 import dataSource from '../db/data-source';
 import { CreateNoteDto } from '../dto/create-note.dto';
 import { UpdateNoteDto } from '../dto/update-note.dto';
+import { User } from '../entities/userEntities/user.entity';
+import { Project } from '../entities/projectEntities/project.entity';
+import ProjectRepository from '../repositories/projectRepository/project.repository';
 
 export class NoteService {
   private noteRepo = dataSource.getRepository(Note);
   private userRepo = dataSource.getRepository(User);
-  private projectRepo = dataSource.getRepository(Project);
+  private projectRepo = new ProjectRepository(dataSource.getRepository(Project));
 
   async addNote(dto: CreateNoteDto): Promise<Note> {
-    const project = await this.projectRepo.findOneBy({ project_id: dto.projectId });
+    const project = await this.projectRepo.findOneByProjectId(dto.projectId );
     const author = await this.userRepo.findOneBy({ user_id: dto.authorId });
 
 
@@ -28,7 +30,7 @@ export class NoteService {
     return await this.noteRepo.save(note);
   }
 
-    async listNotes(projectId: number): Promise<Note[]> {
+    async listNotes(projectId: string): Promise<Note[]> {
     return await this.noteRepo.find({
         where: {
         project: {

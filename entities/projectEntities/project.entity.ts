@@ -9,7 +9,7 @@ import AbstractEntity from '../abstract.entity';
 export class Project extends AbstractEntity {
 
    constructor(
-    project_id?: number,
+    project_id?: string,
     name?: string,
     startdate?: Date,
     enddate?: Date,
@@ -31,7 +31,7 @@ export class Project extends AbstractEntity {
   // so by default @PrimaryColumn() on project_id WILL OVERRIDE
   //  the inherited id from AbstractEntity
   @Column()
-  project_id: number;
+  project_id: string;
 
   @Column()
   name: string;

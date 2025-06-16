@@ -26,7 +26,7 @@ class NoteRepository {
     await this.repo.softDelete(id);
   }
 
-  async findByProject(projectId: number): Promise<Note[]> {
+  async findByProject(projectId: string): Promise<Note[]> {
     return await this.repo.find({
       where: {
       project: { project_id: projectId }

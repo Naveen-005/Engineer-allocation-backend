@@ -60,6 +60,21 @@ class ProjectService {
     }
   }
 
+  async getProjectByProjectId(p_id: string): Promise<Project> {
+    try {
+      const project = await this.projectRepository.findOneByProjectId(p_id);
+      if (!project) {
+        throw new HttpException(404, `Project with ID ${p_id} not found`);
+      }
+      return project;
+    } catch (error) {
+      throw new HttpException(
+        500,
+        `Failed to retrieve project ${p_id}: ${error.message}`
+      );
+    }
+  }
+
   async updateProject(id: number, updateProjectDto: UpdateProjectDto) {
     try {
       const project = await this.projectRepository.findOneById(id);

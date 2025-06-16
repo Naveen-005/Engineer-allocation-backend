@@ -21,7 +21,20 @@ class ProjectRepository {
 
   async findOneById(id: number): Promise<Project> {
     return this.repository.findOne({
-      where: { id },
+      where: { id  },
+      relations: {
+        pm: true,
+        lead: true,
+        projectUsers: { user: true },
+        notes: { author: true },
+        requirements: true,
+      },
+    });
+  }
+
+  async findOneByProjectId(p_id: string): Promise<Project> {
+    return this.repository.findOne({
+      where: { project_id: p_id },
       relations: {
         pm: true,
         lead: true,

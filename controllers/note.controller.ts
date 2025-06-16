@@ -18,7 +18,7 @@ class NoteController {
     try {
       const dto = plainToInstance(CreateNoteDto, {
         ...req.body,
-        projectId: Number(req.params.projectId),
+        projectId: String(req.params.projectId),
       });
 
       const errors = await validate(dto);
@@ -35,8 +35,8 @@ class NoteController {
 
   async listNotes(req: Request, res: Response, next: NextFunction) {
     try {
-      const projectId = Number(req.params.projectId);
-      if (isNaN(projectId)) {
+      const projectId = String(req.params.projectId);
+      if (projectId === 'undefined' || projectId === '') {
         throw new HttpException(400, 'Invalid projectId');
       }
 

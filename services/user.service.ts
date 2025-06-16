@@ -2,15 +2,15 @@ import bcrypt from "bcrypt";
 import { CreateUserDto } from "../dto/create-user.dto";
 import { UpdateUserDto } from "../dto/update-user.dto";
 import datasource from "../db/data-source";
-import { User } from "../entities/user.entity";
+import { User } from "../entities/userEntities/user.entity";
 import { Role } from "../entities/role.entity";
 import { Skill } from "../entities/skill.entity";
-import { UserSkill } from "../entities/userSkill.entity";
-import { Designation } from "../entities/designation.entity";
-import { UserDesignation } from "../entities/userDesignation.entity";
-import UserRepository from "../repositories/user.repository";
-import { In } from "typeorm";
+import { UserSkill } from "../entities/userEntities/userSkill.entity";
 
+import { UserDesignation } from "../entities/userEntities/userDesignation.entity";
+import UserRepository from "../repositories/userRepository/user.repository";
+import { In } from "typeorm";
+import { Designation } from "../entities/userEntities/designation.entity";
 
 
 class UserService {
@@ -53,7 +53,7 @@ class UserService {
     return this.userRepository.findMany();
   }
 
-  async getUserById(id: number): Promise<User> {
+  async getUserById(id: string): Promise<User> {
     const user = await this.userRepository.findOneById(id);
     if (!user) {
       throw new Error("User not found");
@@ -65,7 +65,7 @@ class UserService {
     return this.userRepository.findByEmail(email);
   }
 
-  async updateUser(id: number, dto: UpdateUserDto): Promise<User> {
+  async updateUser(id: string, dto: UpdateUserDto): Promise<User> {
     const user = await this.userRepository.findOneById(id);
     if (!user) throw new Error("User not found");
 
@@ -102,7 +102,7 @@ class UserService {
     return this.userRepository.findOneById(id);
   }
 
-  async deleteUser(id: number): Promise<void> {
+  async deleteUser(id: string): Promise<void> {
     const user = await this.userRepository.findOneById(id);
     if (!user) throw new Error("User not found");
     await this.userRepository.delete(id);
@@ -149,7 +149,7 @@ class UserService {
     await this.userSkillRepository.save(userSkills);
   }
 
-  async appendSkillsToUser(userId: number, skillIds: number[]): Promise<User> {
+  async appendSkillsToUser(userId: string, skillIds: number[]): Promise<User> {
     const user = await this.userRepository.findOneById(userId);
     if (!user) throw new Error("User not found");
 
@@ -175,7 +175,7 @@ class UserService {
   }
 
   async updateUserExperience(
-    userId: number,
+    userId: string,
     experience: number
   ): Promise<User> {
     const user = await this.userRepository.findOneById(userId);
