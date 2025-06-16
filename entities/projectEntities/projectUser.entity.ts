@@ -2,8 +2,9 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 't
 import AbstractEntity from '../abstract.entity';
 import { Project } from './project.entity';
 import { User } from '../userEntities/user.entity';
+import { Designation } from '../userEntities/designation.entity';
 
-@Entity('project_user')
+@Entity("project_user")
 export class ProjectUser extends AbstractEntity {
   constructor(
     project?: Project,
@@ -21,20 +22,27 @@ export class ProjectUser extends AbstractEntity {
     if (end_date) this.end_date = end_date;
   }
 
-  @ManyToOne(() => Project, project => project.projectUsers)
-  @JoinColumn({ name: 'project_id' })
+  @ManyToOne(() => Project, (project) => project.projectUsers)
+  @JoinColumn({ name: "project_id" })
   project: Project;
 
-  @ManyToOne(() => User, user => user.projectUsers)
-  @JoinColumn({ name: 'user_id' })
+  @ManyToOne(() => User, (user) => user.projectUsers)
+  @JoinColumn({ name: "user_id" })
   user: User;
 
   @Column({ default: false })
   is_shadow: boolean;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: "date", nullable: true })
   assigned_on: Date;
 
-  @Column({ type: 'date', nullable: true })
+  @Column({ type: "date", nullable: true })
   end_date: Date;
+
+  @ManyToOne(() => Designation)
+  @JoinColumn({ name: "designation_id" })
+  designation: Designation;
+
+  @Column({ nullable: true })
+  designation_id: number;
 }
