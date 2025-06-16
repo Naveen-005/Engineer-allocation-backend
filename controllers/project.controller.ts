@@ -92,7 +92,7 @@ export default class ProjectController {
       engineers.forEach((engineer) => { userIds.push(engineer.user_id) })
       console.log("userIds(contr):", userIds);
 
-      await this.projectService.assignEngineerToProject(id, userIds);
+      await this.projectService.assignEngineerToProject(id, userIds, engineers);
 
       resp.status(201).send({"message":"Engineer assigned to project successfully"});
 

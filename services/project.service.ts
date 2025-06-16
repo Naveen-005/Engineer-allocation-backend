@@ -6,10 +6,13 @@ import HttpException from "../exceptions/httpException";
 import ProjectRepository from "../repositories/projectRepository/project.repository";
 import UserService from "./user.service";
 import { ProjectUser } from "../entities/projectEntities/projectUser.entity";
+import { Designation } from "../entities/userEntities/designation.entity";
+import {DesignationService} from "./designation.service";
 
 class ProjectService {
   constructor(private projectRepository: ProjectRepository,
-    private userService: UserService
+    private userService: UserService,
+    private designationService: DesignationService
    ) {}
   async createProject(createProjectDto: CreateProjectDto): Promise<Project> {
     try {
@@ -151,22 +154,21 @@ class ProjectService {
     }
   }
 
-  async assignEngineerToProject(id: number, userIds: string[]): Promise<void> {
+  async assignEngineerToProject(id: number, userIds: string[], engineers: {user_id:string,designation_id:number}[]): Promise<void> {
     try {
       const project = await this.projectRepository.findOneById(id);
       if (!project) {
         throw new HttpException(404, `Project with ID ${id} not found`);
       }
 
-      const engineers = await this.userService.getUserListByIds(userIds);
-      
-      const projectUsers = engineers.map(engineer => {
+      const projectUsers = await Promise.all(engineers.map(async engineer => {
         const projectUser = new ProjectUser();
         projectUser.project = project;
-        projectUser.user = engineer;
+        projectUser.user = await this.userService.getUserById(engineer.user_id);
+        projectUser.designation = await this.designationService.getDesignationById(engineer.designation_id);
         projectUser.assigned_on = new Date();
         return projectUser;
-      });
+      }));
 
       await this.projectRepository.saveProjectUsers(projectUsers);
     } catch (error) {
