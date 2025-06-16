@@ -12,6 +12,7 @@ export default class ProjectController {
     router.get("/:id", this.getProjectById.bind(this));
     router.put("/:id", this.updateProject.bind(this));
     router.delete("/:id", this.deleteProject.bind(this));
+    router.post("/:id/assign-engineer", this.assignEngineerToProject.bind(this));
   }
 
   async createProject(req: Request, res: Response, next: NextFunction) {
@@ -79,5 +80,26 @@ export default class ProjectController {
     } catch (error) {
       resp.status(400).send(JSON.stringify({ error: error }));
     }
+  }
+
+  async assignEngineerToProject(req: Request, resp: Response, next: NextFunction) {
+    try{
+
+      const id = Number(req.params.id);
+      const {engineers}= req.body;
+      console.log("engineers:\n", engineers);
+      let userIds=[]
+      engineers.forEach((engineer) => { userIds.push(engineer.user_id) })
+      console.log("userIds(contr):", userIds);
+
+      await this.projectService.assignEngineerToProject(id, userIds);
+
+      resp.status(201).send({"message":"Engineer assigned to project successfully"});
+
+    } catch(err){
+        console.log(err)
+        next(err);
+    }
+
   }
 }

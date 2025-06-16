@@ -199,6 +199,43 @@ class UserService {
 
     return this.userRepository.findOneById(userId); // return updated user
   }
+
+  // async getUserListByIds(ids:string[]){
+  //   let users=[]
+
+  //   console.log("User IDs:", ids);
+
+  //   ids.forEach(async (id) => {
+  //     const user = await this.userRepository.findOneById(id);
+  //     console.log("Fetched User:", user);
+  //     if (!user) {
+  //       throw new Error(`User with ID ${id} not found`);
+  //     }
+  //     users.push(user);
+  //   })
+
+  //   console.log("Users List:", users);
+  //   return users;
+    
+    
+  // }
+
+  async getUserListByIds(ids: string[]) {
+    // console.log("User IDs:", ids);
+    
+    const userPromises = ids.map(async (id) => {
+      const user = await this.userRepository.findOneById(id);
+      // console.log("Fetched User:", user);
+      if (!user) {
+        throw new Error(`User with ID ${id} not found`);
+      }
+      return user;
+    });
+    
+    const users = await Promise.all(userPromises);
+    // console.log("Users List:", users);
+    return users;
+  }
 }
 
 export default UserService;

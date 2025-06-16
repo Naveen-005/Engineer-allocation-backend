@@ -4,9 +4,13 @@ import { Project } from "../entities/projectEntities/project.entity";
 import { User } from "../entities/userEntities/user.entity";
 import HttpException from "../exceptions/httpException";
 import ProjectRepository from "../repositories/projectRepository/project.repository";
+import UserService from "./user.service";
+import { ProjectUser } from "../entities/projectEntities/projectUser.entity";
 
 class ProjectService {
-  constructor(private projectRepository: ProjectRepository) {}
+  constructor(private projectRepository: ProjectRepository,
+    private userService: UserService
+   ) {}
   async createProject(createProjectDto: CreateProjectDto): Promise<Project> {
     try {
       const newProject = new Project(
@@ -143,6 +147,32 @@ class ProjectService {
       throw new HttpException(
         500,
         `Failed to delete deparprojecttment with ID ${id}: ${error.message}`
+      );
+    }
+  }
+
+  async assignEngineerToProject(id: number, userIds: string[]): Promise<void> {
+    try {
+      const project = await this.projectRepository.findOneById(id);
+      if (!project) {
+        throw new HttpException(404, `Project with ID ${id} not found`);
+      }
+
+      const engineers = await this.userService.getUserListByIds(userIds);
+      
+      const projectUsers = engineers.map(engineer => {
+        const projectUser = new ProjectUser();
+        projectUser.project = project;
+        projectUser.user = engineer;
+        projectUser.assigned_on = new Date();
+        return projectUser;
+      });
+
+      await this.projectRepository.saveProjectUsers(projectUsers);
+    } catch (error) {
+      throw new HttpException(
+        500,
+        `Failed to assign engineers to project: ${error.message}`
       );
     }
   }
