@@ -50,7 +50,12 @@ class UserRepository {
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.repository.findOneBy({ email });
+    return this.repository.findOne({
+      where: { email },
+      relations: {
+        role: true,
+      },
+    });
   }
 
   async update(id: string, user: User): Promise<void> {
