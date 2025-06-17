@@ -8,13 +8,16 @@ import { userService } from "./user.route";
 import { Designation } from "../entities/userEntities/designation.entity";
 import {DesignationService} from "../services/designation.service";
 import DesignationRepository from "../repositories/designationRepository/designation.repository";
+import { ProjectUser } from "../entities/projectEntities/projectUser.entity";
+import ProjectUserRepository from "../repositories/projectRepository/projectUser.repository";
 
 const projectRouter = express.Router()
 
 const projectRepository = new ProjectRepository(datasource.getRepository(Project))
 const designationRepository = new DesignationRepository(datasource.getRepository(Designation))
+const projectUserRepository = new ProjectUserRepository(datasource.getRepository(ProjectUser))
 const designationService = new DesignationService(designationRepository)
-const projectService = new ProjectService(projectRepository, userService, designationService)
+const projectService = new ProjectService(projectRepository, userService, designationService, projectUserRepository)
 const projectController = new ProjectController(projectService, projectRouter)
 
 export default projectRouter

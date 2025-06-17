@@ -3,6 +3,7 @@ import { UpdateProjectDto } from "../dto/projectDto/updateProjectDto";
 import CreateRequirementDto from "../dto/requirementDto/createRequirementDto";
 import { Project } from "../entities/projectEntities/project.entity";
 import { ProjectEngineerRequirement } from "../entities/projectEntities/projectEngineerRequirement.entity";
+import ProjectUserRepository from "../repositories/projectRepository/projectUser.repository";
 
 import { User } from "../entities/userEntities/user.entity";
 import HttpException from "../exceptions/httpException";
@@ -12,11 +13,13 @@ import { ProjectUser } from "../entities/projectEntities/projectUser.entity";
 import { Designation } from "../entities/userEntities/designation.entity";
 import {DesignationService} from "./designation.service";
 import ProjectEngineerRequirementRepository from "../repositories/requirement.repository";
+import { error } from "console";
 
 class ProjectService {
   constructor(private projectRepository: ProjectRepository,
     private userService: UserService,
-    private designationService: DesignationService
+    private designationService: DesignationService,
+    private projectUserRepository: ProjectUserRepository,
    ) {}
   async createProject(createProjectDto: CreateProjectDto): Promise<Project> {
     try {
@@ -174,6 +177,26 @@ class ProjectService {
       );
     }
   }
+  // Service for Updating Project Requirements Uses functions in requirement.repository.ts
+  async updateProjectRequirement(
+    requirementId: number,
+    updateData: Partial<ProjectEngineerRequirement>
+  ): Promise<ProjectEngineerRequirement> {
+    const requirementRepo = new ProjectEngineerRequirementRepository();
+    return requirementRepo.update(requirementId, updateData);
+  }
+  // Service for Adding Project Requirements Uses functions in requirement.repository.ts
+  async addProjectRequirement(
+    requirementData: Partial<ProjectEngineerRequirement>
+  ): Promise<ProjectEngineerRequirement> {
+    const requirementRepo = new ProjectEngineerRequirementRepository();
+    return requirementRepo.create(requirementData);
+  }
+  // Service for Deleting Project Requirements Uses functions in requirement.repository.ts
+   async deleteProjectRequirement(requirementId: number): Promise<void> {
+    const requirementRepo = new ProjectEngineerRequirementRepository();
+    await requirementRepo.delete(requirementId);
+  }
 
   async deleteProject(id: number) {
     try {
@@ -197,9 +220,6 @@ class ProjectService {
         throw new HttpException(404, `Project with ID ${id} not found`);
       }
 
-      
-     
-
       const projectUsers = await Promise.all(engineers.map(async engineer => {
         const user = await this.userService.getUserProjects(engineer.user_id);
         console.log("User Projects:", user);
@@ -221,6 +241,34 @@ class ProjectService {
         `Failed to assign engineers to project: ${error.message}`
       );
     }
+  }
+
+  async removeEngineerFromProject(id: number, userIds: string[]): Promise<void> {
+
+    try{
+
+      await Promise.all(userIds.map(async (userId) => {
+        
+        let projectAssignment = await this.projectUserRepository.findUserAssignmentByProjectIdAndUserId(userId, id);
+        if(!projectAssignment){
+          throw new Error("User assignment not found")
+        }
+        projectAssignment.end_date = new Date();
+        await this.projectUserRepository.update(projectAssignment);
+
+      }));
+
+
+
+
+
+    } catch (error) {
+      throw new HttpException(
+        500,
+        `Failed to remove engineer from project: ${error.message}`
+      );
+    }
+
   }
 }
 
