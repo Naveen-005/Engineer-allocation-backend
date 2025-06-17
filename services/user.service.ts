@@ -12,7 +12,6 @@ import UserRepository from "../repositories/userRepository/user.repository";
 import { In } from "typeorm";
 import { Designation } from "../entities/userEntities/designation.entity";
 
-
 class UserService {
   constructor(private userRepository: UserRepository) {}
 
@@ -56,6 +55,10 @@ class UserService {
     return this.userRepository.findMany();
   }
 
+  async getAllEngineers(): Promise<User[]> {
+    return this.userRepository.findManyEngineers();
+  }
+
   async getUserById(id: string): Promise<User> {
     const user = await this.userRepository.findOneById(id);
     if (!user) {
@@ -68,9 +71,15 @@ class UserService {
     return this.userRepository.findByEmail(email);
   }
 
-  async getAvailableUsers() : Promise<User[]>{
+  async getAvailableUsers(): Promise<User[]> {
     const users = await this.userRepository.findMany();
-    return users.filter(user => ((user.projectUsers.length+ user.leadProjects.length + user.managedProjects.length )<2));
+    return users.filter(
+      (user) =>
+        user.projectUsers.length +
+          user.leadProjects.length +
+          user.managedProjects.length <
+        2
+    );
   }
 
   async updateUser(id: string, dto: UpdateUserDto): Promise<User> {
@@ -92,7 +101,7 @@ class UserService {
     await this.userRepository.update(id, user);
 
     // Append new skills without removing existing ones
-    
+
     if (dto.skill_ids && dto.skill_ids.length > 0) {
       await this.handleUserSkills(user, dto.skill_ids);
     }
@@ -221,13 +230,12 @@ class UserService {
 
   //   console.log("Users List:", users);
   //   return users;
-    
-    
+
   // }
 
   async getUserListByIds(ids: string[]) {
     // console.log("User IDs:", ids);
-    
+
     const userPromises = ids.map(async (id) => {
       const user = await this.userRepository.findOneById(id);
       // console.log("Fetched User:", user);
@@ -236,7 +244,7 @@ class UserService {
       }
       return user;
     });
-    
+
     const users = await Promise.all(userPromises);
     // console.log("Users List:", users);
     return users;

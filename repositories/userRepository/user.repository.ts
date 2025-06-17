@@ -4,7 +4,6 @@ import { User } from "../../entities/userEntities/user.entity";
 class UserRepository {
   constructor(private repository: Repository<User>) {}
 
-
   async create(user: User): Promise<User> {
     return this.repository.save(user);
   }
@@ -23,20 +22,34 @@ class UserRepository {
     });
   }
 
-  async findOneById(id: string): Promise<User | null> {
-    return this.repository.findOne({
-      where: { user_id: id },
+  async findManyEngineers(): Promise<User[]> {
+    return this.repository.find({
+      where: { role: { role_id: 2 } },
       relations: {
         role: true,
-        userSkills: { skill: true }, 
+        userSkills: { skill: true },
         projectUsers: true,
-        designations: { designation: true }, 
+        designations: { designation: true },
         notes: true,
         leadProjects: true,
         managedProjects: true,
       },
     });
-    
+  }
+
+  async findOneById(id: string): Promise<User | null> {
+    return this.repository.findOne({
+      where: { user_id: id },
+      relations: {
+        role: true,
+        userSkills: { skill: true },
+        projectUsers: true,
+        designations: { designation: true },
+        notes: true,
+        leadProjects: true,
+        managedProjects: true,
+      },
+    });
   }
 
   async findByEmail(email: string): Promise<User | null> {

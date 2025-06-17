@@ -12,13 +12,13 @@ class UserController {
   constructor(private userService: UserService, router: Router) {
     router.post("/", this.createUser.bind(this));
     router.get("/", this.getAllUsers.bind(this));
-    router.get("/available", this.getAllAvailableUsers.bind(this))
+    router.get("/engineer", this.getAllEngineers.bind(this));
+    router.get("/available", this.getAllAvailableUsers.bind(this));
     router.get("/:id", this.getUserById.bind(this));
     router.put("/:id", this.updateUser);
     router.delete("/:id", this.deleteUser);
     router.patch("/:id/skills/append", this.appendSkills);
     router.patch("/:id/experience", this.updateExperience);
-
   }
 
   public async createUser(req: Request, res: Response, next: NextFunction) {
@@ -45,7 +45,20 @@ class UserController {
     }
   }
 
-  public async getAllAvailableUsers(req: Request, res: Response, next: NextFunction) {
+  public async getAllEngineers(req: Request, res: Response, next: NextFunction) {
+    try {
+      const users = await this.userService.getAllEngineers();
+      res.status(200).json(users);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async getAllAvailableUsers(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
       const users = await this.userService.getAvailableUsers();
       res.status(200).json(users);
@@ -132,8 +145,6 @@ class UserController {
       next(error);
     }
   };
-
-
 }
 
 export default UserController;
