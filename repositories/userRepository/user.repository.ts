@@ -1,5 +1,6 @@
-import { Repository } from "typeorm";
+import { IsNull, Repository } from "typeorm";
 import { User } from "../../entities/userEntities/user.entity";
+import { Project } from "../../entities/projectEntities/project.entity";
 
 class UserRepository {
   constructor(private repository: Repository<User>) {}
@@ -54,6 +55,23 @@ class UserRepository {
 
   async delete(id: string): Promise<void> {
     await this.repository.softDelete({ user_id: id });
+  }
+
+  async findUserProjects(userId: string): Promise<User>{
+
+    return this.repository.findOne({
+      where: { user_id: userId,
+        projectUsers: {
+          end_date: IsNull(),
+        }
+       },
+      relations: {
+        projectUsers: {
+          project: true,
+        }
+      },
+    });
+
   }
 }
 
