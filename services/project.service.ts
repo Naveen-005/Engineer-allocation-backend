@@ -174,6 +174,26 @@ class ProjectService {
       );
     }
   }
+  // Service for Updating Project Requirements Uses functions in requirement.repository.ts
+  async updateProjectRequirement(
+    requirementId: number,
+    updateData: Partial<ProjectEngineerRequirement>
+  ): Promise<ProjectEngineerRequirement> {
+    const requirementRepo = new ProjectEngineerRequirementRepository();
+    return requirementRepo.update(requirementId, updateData);
+  }
+  // Service for Adding Project Requirements Uses functions in requirement.repository.ts
+  async addProjectRequirement(
+    requirementData: Partial<ProjectEngineerRequirement>
+  ): Promise<ProjectEngineerRequirement> {
+    const requirementRepo = new ProjectEngineerRequirementRepository();
+    return requirementRepo.create(requirementData);
+  }
+  // Service for Deleting Project Requirements Uses functions in requirement.repository.ts
+   async deleteProjectRequirement(requirementId: number): Promise<void> {
+    const requirementRepo = new ProjectEngineerRequirementRepository();
+    await requirementRepo.delete(requirementId);
+  }
 
   async deleteProject(id: number) {
     try {
