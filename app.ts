@@ -29,6 +29,7 @@ server.use("/projects", noteRouter);
 
 server.use("/users", userRouter); 
 
+
 server.use(errorMiddleware);
 
 (async () => {
@@ -41,7 +42,7 @@ server.use(errorMiddleware);
   }
 
   server.listen(5000, () => {
-    logger.info("Server listening on port 5432");
+    logger.info("Server listening on port 5000");
   });
 })();
 
