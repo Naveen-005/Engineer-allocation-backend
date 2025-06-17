@@ -107,12 +107,8 @@ export default class ProjectController {
 
       const id = Number(req.params.id);
       const {engineers}= req.body;
-      console.log("engineers:\n", engineers);
-      let userIds=[]
-      engineers.forEach((engineer) => { userIds.push(engineer.user_id) })
-      console.log("userIds(contr):", userIds);
 
-      await this.projectService.assignEngineerToProject(id, userIds, engineers);
+      await this.projectService.assignEngineerToProject(id, engineers);
 
       resp.status(201).send({"message":"Engineer assigned to project successfully"});
 

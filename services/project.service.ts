@@ -190,14 +190,21 @@ class ProjectService {
     }
   }
 
-  async assignEngineerToProject(id: number, userIds: string[], engineers: {user_id:string,designation_id:number}[]): Promise<void> {
+  async assignEngineerToProject(id: number, engineers: {user_id:string,designation_id:number}[]): Promise<void> {
     try {
       const project = await this.projectRepository.findOneById(id);
       if (!project) {
         throw new HttpException(404, `Project with ID ${id} not found`);
       }
 
+      
+     
+
       const projectUsers = await Promise.all(engineers.map(async engineer => {
+        const usr = await this.userService.getUserProjects(engineer.user_id);
+        if(usr.projectUsers.length >= 2) {
+          throw new HttpException(400, `User with ID ${engineers[0].user_id} is already assigned in maximum mumber of projects`);
+        }
         const projectUser = new ProjectUser();
         projectUser.project = project;
         projectUser.user = await this.userService.getUserById(engineer.user_id);
