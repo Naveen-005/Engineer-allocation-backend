@@ -4,6 +4,7 @@ import { User } from "../../entities/userEntities/user.entity";
 class UserRepository {
   constructor(private repository: Repository<User>) {}
 
+
   async create(user: User): Promise<User> {
     return this.repository.save(user);
   }
@@ -12,15 +13,9 @@ class UserRepository {
     return this.repository.find({
       relations: {
         role: true,
-        userSkills: {
-          skill: true,
-        },
-        projectUsers: {
-          project: true,
-        },
-        designations: {
-          designation: true,
-        },
+        userSkills: { skill: true },
+        projectUsers: true,
+        designations: { designation: true },
         notes: true,
         leadProjects: true,
         managedProjects: true,
@@ -33,20 +28,15 @@ class UserRepository {
       where: { user_id: id },
       relations: {
         role: true,
-        userSkills: {
-          skill: true,
-        },
-        projectUsers: {
-          project: true,
-        },
-        designations: {
-          designation: true,
-        },
+        userSkills: { skill: true }, 
+        projectUsers: true,
+        designations: { designation: true }, 
         notes: true,
         leadProjects: true,
         managedProjects: true,
       },
     });
+    
   }
 
   async findUserId(id: number): Promise<User | null> {
@@ -69,7 +59,7 @@ class UserRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await this.repository.softDelete(id);
+    await this.repository.softDelete({ user_id: id });
   }
 }
 

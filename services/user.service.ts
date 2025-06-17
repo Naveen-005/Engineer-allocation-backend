@@ -24,6 +24,7 @@ class UserService {
 
   async createUser(dto: CreateUserDto): Promise<User> {
     const user = new User();
+    user.user_id = dto.user_id;
     user.name = dto.name;
     user.email = dto.email;
     user.password = await bcrypt.hash(dto.password, 10);
@@ -36,17 +37,19 @@ class UserService {
     }
     user.role = role;
 
+    // Save user first to get the generated ID
     const savedUser = await this.userRepository.create(user);
 
+    // Now handle relationships using the saved user with ID
     if (dto.skill_ids && dto.skill_ids.length > 0) {
-      await this.handleUserSkills(user, dto.skill_ids);
+      await this.handleUserSkills(savedUser, dto.skill_ids);
     }
 
     if (dto.designation_id) {
-      await this.handleUserDesignation(user, dto.designation_id);
+      await this.handleUserDesignation(savedUser, dto.designation_id);
     }
 
-    return savedUser;
+    return this.userRepository.findOneById(savedUser.user_id);
   }
 
   async getAllUsers(): Promise<User[]> {
@@ -63,6 +66,11 @@ class UserService {
 
   async getUserByEmail(email: string): Promise<User | null> {
     return this.userRepository.findByEmail(email);
+  }
+
+  async getAvailableUsers() : Promise<User[]>{
+    const users = await this.userRepository.findMany();
+    return users.filter(user => ((user.projectUsers.length+ user.leadProjects.length + user.managedProjects.length )<2));
   }
 
   async updateUser(id: string, dto: UpdateUserDto): Promise<User> {
@@ -84,8 +92,9 @@ class UserService {
     await this.userRepository.update(id, user);
 
     // Append new skills without removing existing ones
+    
     if (dto.skill_ids && dto.skill_ids.length > 0) {
-      await this.appendSkillsToUser(id, dto.skill_ids);
+      await this.handleUserSkills(user, dto.skill_ids);
     }
 
     // Update experience (if provided)
@@ -112,18 +121,20 @@ class UserService {
     user: User,
     designationId: number
   ): Promise<void> {
+    // Delete existing user designations
     await this.userDesignationRepository.delete({
-      user: { user_id: user.user_id },
+      user: { id: user.id }, // Use the primary key ID
     });
 
     const designation = await this.designationRepository.findOneBy({
       id: designationId,
     });
-    if (!designation)
+    if (!designation) {
       throw new Error(`Designation with ID ${designationId} not found`);
+    }
 
     const userDesignation = new UserDesignation();
-    userDesignation.user = user;
+    userDesignation.user = user; // This now has the proper ID
     userDesignation.designation = designation;
 
     await this.userDesignationRepository.save(userDesignation);
@@ -133,15 +144,22 @@ class UserService {
     user: User,
     skillIds: number[]
   ): Promise<void> {
-    await this.userSkillRepository.delete({ user: { user_id: user.user_id } });
+    // Delete existing user skills if any
+    await this.userSkillRepository.delete({ user: { id: user.id } });
 
     const skills = await this.skillRepository.find({
       where: { skill_id: In(skillIds) },
     });
 
+    if (skills.length !== skillIds.length) {
+      const foundIds = skills.map((s) => s.skill_id);
+      const missingIds = skillIds.filter((id) => !foundIds.includes(id));
+      throw new Error(`Skills not found: ${missingIds.join(", ")}`);
+    }
+
     const userSkills = skills.map((skill) => {
       const us = new UserSkill();
-      us.user = user;
+      us.user = user; // This now has the proper ID
       us.skill = skill;
       return us;
     });
@@ -185,6 +203,43 @@ class UserService {
     await this.userRepository.update(userId, user);
 
     return this.userRepository.findOneById(userId); // return updated user
+  }
+
+  // async getUserListByIds(ids:string[]){
+  //   let users=[]
+
+  //   console.log("User IDs:", ids);
+
+  //   ids.forEach(async (id) => {
+  //     const user = await this.userRepository.findOneById(id);
+  //     console.log("Fetched User:", user);
+  //     if (!user) {
+  //       throw new Error(`User with ID ${id} not found`);
+  //     }
+  //     users.push(user);
+  //   })
+
+  //   console.log("Users List:", users);
+  //   return users;
+    
+    
+  // }
+
+  async getUserListByIds(ids: string[]) {
+    // console.log("User IDs:", ids);
+    
+    const userPromises = ids.map(async (id) => {
+      const user = await this.userRepository.findOneById(id);
+      // console.log("Fetched User:", user);
+      if (!user) {
+        throw new Error(`User with ID ${id} not found`);
+      }
+      return user;
+    });
+    
+    const users = await Promise.all(userPromises);
+    // console.log("Users List:", users);
+    return users;
   }
 }
 

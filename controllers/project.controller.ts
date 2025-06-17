@@ -6,14 +6,19 @@ import { Request, Response, Router, NextFunction } from "express";
 import { checkRole } from "../middlewares/authorizationMiddleware";
 
 export default class ProjectController {
+  
   constructor(private projectService: ProjectService, router: Router) {
     router.post("/", this.createProject.bind(this));
-    router.get("/", checkRole(["HR"]),this.getAllProjects.bind(this));
+    router.get("/", checkRole(["HR"]), this.getAllProjects.bind(this));
     router.get("/:id", this.getProjectById.bind(this));
+    router.get("/user/:userId", this.getProjectsByUserId.bind(this));
     router.put("/:id", this.updateProject.bind(this));
     router.delete("/:id", this.deleteProject.bind(this));
+    router.post("/:id/assign-engineer", this.assignEngineerToProject.bind(this));
   }
 
+
+  
   async createProject(req: Request, res: Response, next: NextFunction) {
     try {
       const createProjectDto: CreateProjectDto = req.body;
@@ -52,6 +57,22 @@ export default class ProjectController {
     }
   }
 
+  async getProjectsByUserId(req: Request, resp: Response, next: NextFunction) {
+    try {
+      const userId = Number(req.params.userId);
+      const projects = await this.projectService.getProjectsByUserId(userId);
+      if (!projects || projects.length === 0) {
+        throw new HttpException(
+          404,
+          `No projects found for employee with ID ${userId}`
+        );
+      }
+      resp.status(200).send(projects);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async updateProject(req: Request, res: Response, next: NextFunction) {
     try {
       const id = Number(req.params.id);
@@ -79,5 +100,26 @@ export default class ProjectController {
     } catch (error) {
       resp.status(400).send(JSON.stringify({ error: error }));
     }
+  }
+
+  async assignEngineerToProject(req: Request, resp: Response, next: NextFunction) {
+    try{
+
+      const id = Number(req.params.id);
+      const {engineers}= req.body;
+      console.log("engineers:\n", engineers);
+      let userIds=[]
+      engineers.forEach((engineer) => { userIds.push(engineer.user_id) })
+      console.log("userIds(contr):", userIds);
+
+      await this.projectService.assignEngineerToProject(id, userIds, engineers);
+
+      resp.status(201).send({"message":"Engineer assigned to project successfully"});
+
+    } catch(err){
+        console.log(err)
+        next(err);
+    }
+
   }
 }

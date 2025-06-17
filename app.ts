@@ -9,13 +9,16 @@ import cors from "cors";
 import projectRouter from "./routes/project.route";
 import userRouter from "./routes/user.route";
 import { authMiddleware } from "./middlewares/authMiddleware";
+import { LoggerService } from "./services/logger.service";
 
+const logger = LoggerService.getInstance("app.ts");
 const server = express();
 
 server.use(cors())
 server.use(express.json());
 
 server.get("/", (req: Request, res: Response) => {
+  logger.info("Received GET /");
   res.status(200).send("Hello world");
 });
 
@@ -28,16 +31,17 @@ server.use("/users", userRouter);
 
 server.use(errorMiddleware);
 
-(async()=>{
-  try{
+(async () => {
+  try {
     await dataSource.initialize();
-    console.log('Database connected');
-  }catch (e){
-    console.error(`Failed to connect to DB - ${e}`)
+    logger.info("Database connected");
+  } catch (e) {
+    logger.error(`Failed to connect to DB - ${e}`);
     process.exit(1);
   }
+
   server.listen(5000, () => {
-    console.info("server listening to 5000");
+    logger.info("Server listening on port 5432");
   });
 })();
 
