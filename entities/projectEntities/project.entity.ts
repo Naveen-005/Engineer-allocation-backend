@@ -59,7 +59,7 @@ export class Project extends AbstractEntity {
   @OneToMany(() => Note, note => note.project)
   notes: Note[];
 
-  @OneToMany(() => ProjectEngineerRequirement, r => r.project)
+  @OneToMany(() => ProjectEngineerRequirement, r => r.project, { cascade: true })
   requirements: ProjectEngineerRequirement[];
 }
 
