@@ -4,6 +4,7 @@ import { ProjectUser } from "../../entities/projectEntities/projectUser.entity";
 
 class ProjectRepository {
   constructor(private repository: Repository<Project>) {}
+  
 
   async create(project: Project): Promise<Project> {
     console.log(project)

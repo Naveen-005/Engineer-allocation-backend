@@ -249,6 +249,13 @@ class UserService {
     // console.log("Users List:", users);
     return users;
   }
+
+  async getUserProjects(id:string){
+
+    return await this.userRepository.findUserProjects(id);
+
+    
+  }
 }
 
 export default UserService;
