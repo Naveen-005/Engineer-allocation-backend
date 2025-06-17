@@ -16,6 +16,10 @@ export default class ProjectController {
     router.delete("/:id", this.deleteProject.bind(this));
     router.post("/:id/engineer", this.assignEngineerToProject.bind(this));
     router.delete("/:id/engineer", this.removeEngineerFromProject.bind(this));
+    //router for project requirements
+    router.post("/requirement", this.addProjectRequirement.bind(this));
+    router.put("/requirement/:requirementId", this.updateProjectRequirement.bind(this));
+    router.delete("/requirement/:requirementId", this.deleteProjectRequirement.bind(this))
   }
 
 
@@ -92,6 +96,46 @@ export default class ProjectController {
       next(error);
     }
   }
+
+  // Add a new project requirement
+  async addProjectRequirement(req: Request, res: Response, next: NextFunction) {
+    try {
+      const requirementData = req.body;
+      const newRequirement = await this.projectService.addProjectRequirement(requirementData);
+      res.status(201).json({
+        message: "Project requirement added successfully",
+        data: newRequirement,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // Update an existing project requirement
+  async updateProjectRequirement(req: Request, res: Response, next: NextFunction) {
+    try {
+      const requirementId = Number(req.params.requirementId);
+      const updateData = req.body;
+      const updatedRequirement = await this.projectService.updateProjectRequirement(requirementId, updateData);
+      res.status(200).json({
+        message: "Project requirement updated successfully",
+        data: updatedRequirement,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+  //Delete a project requirement (soft delete)
+  async deleteProjectRequirement(req: Request, res: Response, next: NextFunction) {
+    try {
+      const requirementId = Number(req.params.requirementId);
+      await this.projectService.deleteProjectRequirement(requirementId);
+      res.status(204).send();
+    } catch (error) {
+      next(error);
+    }
+  }
+
 
   async deleteProject(req: Request, resp: Response) {
     try {
