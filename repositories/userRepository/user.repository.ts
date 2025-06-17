@@ -63,21 +63,41 @@ class UserRepository {
     await this.repository.softDelete({ user_id: id });
   }
 
-  async findUserProjects(userId: string): Promise<User>{
+  // async findUserProjects(userId: string): Promise<User>{
 
-    return this.repository.findOne({
-      where: { user_id: userId,
-        projectUsers: {
-          end_date: IsNull(),
-        }
-       },
-      relations: {
-        projectUsers: {
-          project: true,
-        }
-      },
+  //   return this.repository.findOne({
+  //     where: { 
+  //       user_id: userId
+  //     },
+  //     relations: {
+  //       projectUsers: {
+  //         where: { end_date: IsNull() }
+  //       },
+  //       leadProjects: {
+  //         where: { enddate: IsNull() } 
+  //       },
+  //       managedProjects: {
+  //         where: { enddate: IsNull() }  
+  //       }
+  //     }
+        
+  //   });
+
+  // }
+  async findUserProjects(userId: string): Promise<User> {
+    const user = await this.repository.findOne({
+      where: { user_id: userId },
+      relations: ['projectUsers', 'leadProjects', 'managedProjects']
     });
 
+    if (user) {
+      // Filter out projects with non-null end dates
+      user.projectUsers = user.projectUsers?.filter(p => p.end_date === null) || [];
+      user.leadProjects = user.leadProjects?.filter(p => p.enddate === null) || [];
+      user.managedProjects = user.managedProjects?.filter(p => p.enddate === null) || [];
+    }
+
+    return user;
   }
 }
 
