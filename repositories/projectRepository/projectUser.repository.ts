@@ -2,20 +2,31 @@ import {  Repository } from "typeorm";
 import { ProjectUser } from "../../entities/projectEntities/projectUser.entity";
 import { IsNull } from "typeorm";
 
-class ProjectRepository {
+class ProjectUserRepository {
   constructor(private repository: Repository<ProjectUser>) {}
 
-    // async findUserProjects(userId: string): Promise<[ProjectUser[], number]> {
-    //     return this.repository.findAndCount({
-    //         where: { 
-    //             user.user_id: userId,
-    //             deleted_at: IsNull(),
-    //             end_date: IsNull()
-    //         },relations: {
 
-    //             user: true,
-    //         }
-    //     });
-    // }
+    async findUserAssignmentByProjectIdAndUserId(userId,projectId){
+      return this.repository.findOne({
+        where: {
+          user: { user_id: userId }, 
+          project: { id: projectId },
+          end_date: IsNull()
+        },
+        relations: {
+          user: true,
+          project: true
+        }
+      })
+    }
+
+
+    async update(projectUserAssignment) {
+
+      await this.repository.save(projectUserAssignment);
+
+    }
 
 }
+
+export default ProjectUserRepository;

@@ -14,7 +14,8 @@ export default class ProjectController {
     router.get("/user/:userId", this.getProjectsByUserId.bind(this));
     router.put("/:id", this.updateProject.bind(this));
     router.delete("/:id", this.deleteProject.bind(this));
-    router.post("/:id/assign-engineer", this.assignEngineerToProject.bind(this));
+    router.post("/:id/engineer", this.assignEngineerToProject.bind(this));
+    router.delete("/:id/engineer", this.removeEngineerFromProject.bind(this));
   }
 
 
@@ -117,5 +118,22 @@ export default class ProjectController {
         next(err);
     }
 
+  }
+
+  async removeEngineerFromProject(req: Request, resp: Response, next: NextFunction) {
+
+    try{
+
+      const id = Number(req.params.id);
+      const {engineers}= req.body;
+
+      await this.projectService.removeEngineerFromProject(id, engineers);
+
+
+      resp.status(204).send({"message":"Engineer removed from project"});
+    } catch(err){
+        console.log(err)
+        next(err);
+    }
   }
 }
