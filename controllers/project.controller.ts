@@ -9,8 +9,7 @@ export default class ProjectController {
   
   constructor(private projectService: ProjectService, router: Router) {
     router.post("/", this.createProject.bind(this));
-    //router.get("/", checkRole(["HR"]), this.getAllProjects.bind(this));
-    router.get("/", this.getAllProjects.bind(this));
+    router.get("/", checkRole(["HR"]), this.getAllProjects.bind(this));
     router.get("/:id", this.getProjectById.bind(this));
     router.get("/user/:userId", this.getProjectsByUserId.bind(this));
     router.put("/:id", this.updateProject.bind(this));
