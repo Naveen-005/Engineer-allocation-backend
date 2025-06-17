@@ -23,6 +23,7 @@
     "class-validator": "^0.14.2",
     "cors": "^2.8.5",
     "express": "^5.1.0",
+    "expresss": "^0.0.0",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.16.0",
     "typeorm": "^0.3.24",
@@ -32,6 +33,7 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
+    "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^24.0.1",
     "@types/winston": "^2.4.4"
