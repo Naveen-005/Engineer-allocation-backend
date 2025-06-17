@@ -49,6 +49,12 @@ class UserRepository {
     });
   }
 
+  async findUserId(id: number): Promise<User | null> {
+    return this.repository.findOne({
+      where: { id },
+    });
+  }
+
   async findByEmail(email: string): Promise<User | null> {
     return this.repository.findOne({
       where: { email },
