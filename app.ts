@@ -41,7 +41,7 @@ server.use(errorMiddleware);
   }
 
   server.listen(5000, () => {
-    logger.info("Server listening on port 5432");
+    logger.info("Server listening on port 5000");
   });
 })();
 
