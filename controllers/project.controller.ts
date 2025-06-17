@@ -4,21 +4,23 @@ import HttpException from "../exceptions/httpException";
 import ProjectService from "../services/project.service";
 import { Request, Response, Router, NextFunction } from "express";
 import { checkRole } from "../middlewares/authorizationMiddleware";
+import { auditLogMiddleware } from "../middlewares/auditLogMiddleware";
+import { AuditActionType } from "../entities/auditLog.entity";
 
 export default class ProjectController {
   
   constructor(private projectService: ProjectService, router: Router) {
-    router.post("/", this.createProject.bind(this));
+    router.post("/",auditLogMiddleware(AuditActionType.CREATE_PROJECT), this.createProject.bind(this));
     router.get("/", checkRole(["HR"]), this.getAllProjects.bind(this));
     router.get("/:id", this.getProjectById.bind(this));
     router.get("/user/:userId", this.getProjectsByUserId.bind(this));
-    router.put("/:id", this.updateProject.bind(this));
+    router.put("/:id",auditLogMiddleware(AuditActionType.UPDATE_PROJECT), this.updateProject.bind(this));
     router.delete("/:id", this.deleteProject.bind(this));
-    router.post("/:id/assign-engineer", this.assignEngineerToProject.bind(this));
+    router.post("/:id/assign-engineer", auditLogMiddleware(AuditActionType.ASSIGN_USER), this.assignEngineerToProject.bind(this));
     //router for project requirements
-    router.post("/requirement", this.addProjectRequirement.bind(this));
-    router.put("/requirement/:requirementId", this.updateProjectRequirement.bind(this));
-    router.delete("/requirement/:requirementId", this.deleteProjectRequirement.bind(this))
+    router.post("/requirement", auditLogMiddleware(AuditActionType.REQUIREMENTS_UPDATE), this.addProjectRequirement.bind(this));
+    router.put("/requirement/:requirementId", auditLogMiddleware(AuditActionType.REQUIREMENTS_UPDATE), this.updateProjectRequirement.bind(this));
+    router.delete("/requirement/:requirementId", auditLogMiddleware(AuditActionType.REQUIREMENTS_UPDATE), this.deleteProjectRequirement.bind(this))
   }
 
 

@@ -7,6 +7,8 @@ import HttpException from "../exceptions/httpException";
 import UserService from "../services/user.service";
 import UserSkillService from "../services/userSkill.service";
 import { AddUserSkillDTO } from "../dto/add-userSkill-dto";
+import { auditLogMiddleware } from "../middlewares/auditLogMiddleware";
+import { AuditActionType } from "../entities/auditLog.entity";
 // import { authorizationMiddleware } from "../middlewares/authorization.middleware";
 
 //id references user_id not primary key (id)
@@ -23,10 +25,10 @@ class UserController {
     router.get("/:id", this.getUserById.bind(this));
     router.put("/:id", this.updateUser);
     router.delete("/:id", this.deleteUser);
-    router.patch("/:id/skills/append", this.appendSkills);
+    router.patch("/:id/skills/append", auditLogMiddleware(AuditActionType.UPDATE_SKILLSET), this.appendSkills);
     router.patch("/:id/experience", this.updateExperience);
-    router.post("/skills/:id", this.addSkill.bind(this));
-    router.delete("/skills/:id", this.removeSkill.bind(this));
+    router.post("/skills/:id", auditLogMiddleware(AuditActionType.UPDATE_SKILLSET), this.addSkill.bind(this));
+    router.delete("/skills/:id", auditLogMiddleware(AuditActionType.UPDATE_SKILLSET), this.removeSkill.bind(this));
     router.get("/skills/:id", this.getUserSkills.bind(this));
   }
 

@@ -12,9 +12,11 @@ import { User } from "./userEntities/user.entity";
 export enum AuditActionType {
   ASSIGN_USER = "ASSIGN_USER",
   REMOVE_USER = "REMOVE_USER",
+  CREATE_PROJECT = "CREATE_PROJECT",
   UPDATE_PROJECT = "UPDATE_PROJECT",
   CLOSE_PROJECT = "CLOSE_PROJECT",
   UPDATE_SKILLSET = "UPDATE_SKILLSET",
+  REQUIREMENTS_UPDATE = "REQUIREMENTS_UPDATE",
   ADD_NOTE = "ADD_NOTE",
   REMOVE_NOTE = "REMOVE_NOTE",
   // Add more actions as needed
