@@ -32,6 +32,7 @@ server.use("/projects", noteRouter);
 
 server.use("/users", userRouter);
 
+
 server.use(errorMiddleware);
 
 (async () => {
