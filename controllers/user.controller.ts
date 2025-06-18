@@ -5,20 +5,31 @@ import { CreateUserDto } from "../dto/create-user.dto";
 import { UpdateUserDto } from "../dto/update-user.dto";
 import HttpException from "../exceptions/httpException";
 import UserService from "../services/user.service";
+import UserSkillService from "../services/userSkill.service";
+import { AddUserSkillDTO } from "../dto/add-userSkill-dto";
+import { auditLogMiddleware } from "../middlewares/auditLogMiddleware";
+import { AuditActionType } from "../entities/auditLog.entity";
 // import { authorizationMiddleware } from "../middlewares/authorization.middleware";
 
 //id references user_id not primary key (id)
 class UserController {
-  constructor(private userService: UserService, router: Router) {
+  constructor(
+    private userService: UserService,
+    private userSkillService: UserSkillService,
+    router: Router
+  ) {
     router.post("/", this.createUser.bind(this));
     router.get("/", this.getAllUsers.bind(this));
-    router.get("/available", this.getAllAvailableUsers.bind(this))
+    router.get("/engineer", this.getAllEngineers.bind(this));
+    router.get("/available", this.getAllAvailableUsers.bind(this));
     router.get("/:id", this.getUserById.bind(this));
     router.put("/:id", this.updateUser);
     router.delete("/:id", this.deleteUser);
-    router.patch("/:id/skills/append", this.appendSkills);
+    router.patch("/:id/skills/append", auditLogMiddleware(AuditActionType.UPDATE_SKILLSET), this.appendSkills);
     router.patch("/:id/experience", this.updateExperience);
-
+    router.post("/skills/:id", auditLogMiddleware(AuditActionType.UPDATE_SKILLSET), this.addSkill.bind(this));
+    router.delete("/skills/:id", auditLogMiddleware(AuditActionType.UPDATE_SKILLSET), this.removeSkill.bind(this));
+    router.get("/skills/:id", this.getUserSkills.bind(this));
   }
 
   public async createUser(req: Request, res: Response, next: NextFunction) {
@@ -45,7 +56,24 @@ class UserController {
     }
   }
 
-  public async getAllAvailableUsers(req: Request, res: Response, next: NextFunction) {
+  public async getAllEngineers(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const users = await this.userService.getAllEngineers();
+      res.status(200).json(users);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async getAllAvailableUsers(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
       const users = await this.userService.getAvailableUsers();
       res.status(200).json(users);
@@ -133,7 +161,68 @@ class UserController {
     }
   };
 
+  async addSkill(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const userId = Number(req.params.id);
+      //console.log("params", userId,req.body.skill_id)
+      const addUserSkillDto = plainToInstance(AddUserSkillDTO, {
+        user_id: userId,
+        skill_id: req.body.skill_id,
+      });
+      const errors = await validate(addUserSkillDto);
+      if (errors.length > 0) {
+        throw new HttpException(400, JSON.stringify(errors));
+      }
+      console.log(addUserSkillDto.user_id, addUserSkillDto.skill_id);
+      const user = await this.userSkillService.addSkillToUser(
+        addUserSkillDto.user_id,
+        addUserSkillDto.skill_id
+      );
+      res.status(201).json(user);
+    } catch (error) {
+      next(error);
+    }
+  }
 
+  async removeSkill(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const userId = Number(req.params.id);
+      const skillId = req.body.skillId;
+      console.log("just inside controller");
+      await this.userSkillService.removeSkillFromUser(userId, skillId);
+      res.status(204).send();
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  async getUserSkills(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const userId = Number(req.params.id);
+      console.log("id from params", userId);
+      const skills = await this.userSkillService.getUserSkills(userId);
+      //console.log("result",skills)
+      if (!skills || skills.length == 0) {
+        throw new HttpException(404, "No skills found");
+      }
+      res.status(200).json(skills);
+    } catch (error: any) {
+      console.log(error);
+      next(error);
+    }
+  }
 }
 
 export default UserController;

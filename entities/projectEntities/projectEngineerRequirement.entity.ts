@@ -42,6 +42,6 @@ export class ProjectEngineerRequirement extends AbstractEntity {
   @Column({ default: false })
   is_requested: boolean;
 
-  @OneToMany(() => ProjectEngineerRequirementSkill, (rs) => rs.requirement)
+  @OneToMany(() => ProjectEngineerRequirementSkill, (rs) => rs.requirement, { cascade: true })
   requirementSkills: ProjectEngineerRequirementSkill[];
 }
