@@ -39,7 +39,9 @@ export class AuthService {
         this.logger.info(`Successfully generated token for user: ${email}`);
         return{
             tokenType:"Bearer",
-            accessToken:token
+            accessToken:token,
+            role:user.role.role_name,
+            user_id:user.user_id
         }
     }
 }
