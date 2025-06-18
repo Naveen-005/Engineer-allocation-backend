@@ -24,7 +24,7 @@ class ProjectService {
     private requirementRepository: ProjectEngineerRequirementRepository
   ) {}
   async createProject(createProjectDto: CreateProjectDto): Promise<Project> {
-    console.log("here", createProjectDto.requirements)
+    console.log("here", createProjectDto.requirements);
     try {
       const newProject = new Project(
         createProjectDto.project_id,
@@ -66,7 +66,7 @@ class ProjectService {
 
           console.log("savingreq", savingreq);
         }
-        console.log("saved project" , savedProject);
+        console.log("saved project", savedProject);
         return savedProject;
       }
     } catch (error) {
@@ -138,12 +138,17 @@ class ProjectService {
     }
   }
 
-  async updateProject(id: number, updateProjectDto: UpdateProjectDto) {
+  async updateProject(
+    id: number,
+    updateProjectDto: UpdateProjectDto
+  ): Promise<Project> {
     try {
       const project = await this.projectRepository.findOneById(id);
       if (!project) {
         throw new HttpException(404, `Project with ID ${id} not found`);
       }
+
+      // Update project fields
       if (updateProjectDto.name !== undefined) {
         project.name = updateProjectDto.name;
       }
@@ -152,8 +157,11 @@ class ProjectService {
         project.startdate = new Date(updateProjectDto.startdate);
       }
 
-      if (updateProjectDto.enddate !== undefined) {
-        project.enddate = new Date(updateProjectDto.enddate);
+      if ("enddate" in updateProjectDto) {
+        project.enddate = updateProjectDto.enddate
+          ? new Date(updateProjectDto.enddate)
+          : null;
+        project.status = "IN PROGRESS"
       }
 
       if (updateProjectDto.status !== undefined) {
@@ -161,32 +169,15 @@ class ProjectService {
       }
 
       if (updateProjectDto.pmId !== undefined) {
-        // const pm = await this.userRepository.findOneBy({
-        //   id: updateProjectDto.pmId,
-        // });
-        // if (!pm)
-        //   throw new HttpException(
-        //     404,
-        //     `Project Manager with ID ${updateProjectDto.pmId} not found`
-        //   );
-        // project.pm = pm;
+        project.pm = { id: updateProjectDto.pmId } as User;
       }
 
       if (updateProjectDto.leadId !== undefined) {
-        // const lead = await this.userRepository.findOneBy({
-        //   id: updateProjectDto.leadId,
-        // });
-        // if (!lead)
-        //   throw new HttpException(
-        //     404,
-        //     `Lead with ID ${updateProjectDto.leadId} not found`
-        //   );
-        // project.lead = lead;
+        project.lead = { id: updateProjectDto.leadId } as User;
       }
 
-      const updatedProject = await this.projectRepository.update(id, project);
-
-      return updatedProject;
+      // Save updated project
+      return await this.projectRepository.update(id, project);
     } catch (error) {
       throw new HttpException(
         500,
@@ -194,6 +185,7 @@ class ProjectService {
       );
     }
   }
+
   // Service for Updating Project Requirements Uses functions in requirement.repository.ts
   async updateProjectRequirement(
     requirementId: number,
@@ -230,8 +222,6 @@ class ProjectService {
     }
   }
 
-
-
   async assignEngineerToProject(
     id: number,
     engineers: { user_id: string; requirement_id: number }[]
@@ -261,10 +251,9 @@ class ProjectService {
           projectUser.user = await this.userService.getUserById(
             engineer.user_id
           );
-          projectUser.requirement =
-            await this.requirementRepository.getById(
-              engineer.requirement_id
-            );
+          projectUser.requirement = await this.requirementRepository.getById(
+            engineer.requirement_id
+          );
 
           projectUser.assigned_on = new Date();
           return projectUser;

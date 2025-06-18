@@ -85,7 +85,7 @@ class ProjectRepository {
 
 
   async update(id: number, project: Project) {
-    await this.repository.save({ id, ...project });
+   return await this.repository.save({ id, ...project });
   }
 
   async addUsersToProject(project: Project): Promise<Project> {
