@@ -10,6 +10,7 @@ import { Designation } from "../userEntities/designation.entity";
 import { Project } from "./project.entity";
 import { ProjectEngineerRequirementSkill } from "./projectEngineerRequirementSkill.entity";
 import AbstractEntity from "../abstract.entity";
+import { ProjectUser } from "./projectUser.entity";
 
 @Entity("project_engineer_requirements")
 export class ProjectEngineerRequirement extends AbstractEntity {
@@ -18,7 +19,8 @@ export class ProjectEngineerRequirement extends AbstractEntity {
     designation?: Designation,
     required_count?: number,
     is_requested?: boolean,
-    requirementSkills?: ProjectEngineerRequirementSkill[]
+    requirementSkills?: ProjectEngineerRequirementSkill[],
+    projectAssignments?: ProjectUser[]
   ) {
     super();
     if (project) this.project = project;
@@ -26,6 +28,7 @@ export class ProjectEngineerRequirement extends AbstractEntity {
     if (required_count !== undefined) this.required_count = required_count;
     if (is_requested !== undefined) this.is_requested = is_requested;
     if (requirementSkills) this.requirementSkills = requirementSkills;
+    if (projectAssignments) this.projectAssignments = projectAssignments;
   }
 
   @ManyToOne(() => Project, (p) => p.requirements)
@@ -42,6 +45,12 @@ export class ProjectEngineerRequirement extends AbstractEntity {
   @Column({ default: false })
   is_requested: boolean;
 
-  @OneToMany(() => ProjectEngineerRequirementSkill, (rs) => rs.requirement, { cascade: true })
+  @OneToMany(() => ProjectEngineerRequirementSkill, (rs) => rs.requirement, {
+    cascade: true,
+    eager: true,
+  })
   requirementSkills: ProjectEngineerRequirementSkill[];
+
+  @OneToMany(() => ProjectUser, (pu) => pu.requirement)
+  projectAssignments: ProjectUser[];
 }
