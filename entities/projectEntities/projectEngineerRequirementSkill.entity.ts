@@ -15,7 +15,7 @@ export class ProjectEngineerRequirementSkill extends AbstractEntity {
   @JoinColumn({ name: "requirement_id" })
   requirement: ProjectEngineerRequirement;
 
-  @ManyToOne(() => Skill, (s) => s.requirementSkills)
+  @ManyToOne(() => Skill, (s) => s.requirementSkills, { eager: true })
   @JoinColumn({ name: "skill_id" })
   skill: Skill;
 }

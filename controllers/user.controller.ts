@@ -22,6 +22,7 @@ class UserController {
     router.get("/", this.getAllUsers.bind(this));
     router.get("/engineer", this.getAllEngineers.bind(this));
     router.get("/available", this.getAllAvailableUsers.bind(this));
+     router.get("/assignable", this.getAssignableUsers.bind(this));
     router.get("/:id", this.getUserById.bind(this));
     router.put("/:id", this.updateUser);
     router.delete("/:id", this.deleteUser);
@@ -51,6 +52,17 @@ class UserController {
     try {
       const users = await this.userService.getAllUsers();
       res.status(200).json(users);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public async getAssignableUsers(req:Request, res:Response, next: NextFunction){
+    try {
+      const designation = req.body.designation;
+      const skills = req.body.skills;
+      const users = await this.userService.getAssignableUsers(designation, skills)
+      res.status(200).json(users)
     } catch (error) {
       next(error);
     }
