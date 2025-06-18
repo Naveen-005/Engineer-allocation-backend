@@ -13,6 +13,7 @@ import { LoggerService } from "./services/logger.service";
 import designationRouter from "./routes/designation.route";
 import skillRouter from "./routes/skill.route";
 import auditLogRouter from "./routes/auditLog.route";
+import chatbotRouter from "./routes/chatbot.route";
 
 const logger = LoggerService.getInstance("app.ts");
 const server = express();
@@ -30,7 +31,7 @@ server.use("/skills", skillRouter);
 server.use("/auth", authRouter);
 server.use("/project",authMiddleware, projectRouter);
 server.use("/projects", noteRouter);
-
+server.use("/chatbot", chatbotRouter);
 server.use("/users", userRouter);
 server.use("/audit-logs", auditLogRouter);
 
