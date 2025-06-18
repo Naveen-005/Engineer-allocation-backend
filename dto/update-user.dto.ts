@@ -37,11 +37,11 @@ export class UpdateUserDto {
 
   @IsOptional()
   @IsArray()
-  @ArrayNotEmpty()
   @IsInt({ each: true })
-  skill_ids?: number[];
+  skill_id?: number[];
 
   @IsOptional()
-  @IsInt()
-  designation_id?: number;
+  @IsArray()
+  @IsInt({ each: true })
+  designation_id?: number[];
 }
