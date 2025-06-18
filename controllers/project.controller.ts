@@ -233,7 +233,13 @@ export default class ProjectController {
 
     try{
 
-      const additionalRequests = await this.projectService.getAdditionalRequests();
+      let additionalRequests = await this.projectService.getAdditionalRequests();
+
+      const sorted = additionalRequests.sort((a, b) => {
+        return b.createdAt.getTime() - a.createdAt.getTime();
+      })
+
+
       resp.status(200).json({"message":"success",
         data: additionalRequests
       });
