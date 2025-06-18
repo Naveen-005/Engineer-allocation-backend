@@ -1,12 +1,32 @@
 import DesignationRepository from "../repositories/designationRepository/designation.repository";
 import { Designation } from "../entities/userEntities/designation.entity";
+import { LoggerService } from '../services/logger.service';
 
 export class DesignationService {
-    constructor(private designationRepository:DesignationRepository) {}
+  private logger = LoggerService.getInstance(DesignationService.name);
 
-    async getDesignationById(id: number): Promise<Designation> {
+  constructor(private designationRepository: DesignationRepository) {}
 
-        return await this.designationRepository.getById(id);
+  async getDesignationById(id: number): Promise<Designation> {
+    this.logger.info(`Fetching designation with id ${id}`);
+    
+    const designation = await this.designationRepository.getById(id);
+    
+    if (designation) {
+      this.logger.info(`Successfully fetched designation ${id}`);
+    } else {
+      this.logger.warn(`Designation ${id} not found`);
     }
+    
+    return designation;
+  }
 
+  async listDesignations(): Promise<Designation[]> {
+    this.logger.info('Fetching all designations');
+    
+    const designations = await this.designationRepository.list();
+    
+    this.logger.info(`Fetched ${designations.length} designations`);
+    return designations;
+  }
 }
