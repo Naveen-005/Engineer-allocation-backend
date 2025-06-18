@@ -107,6 +107,15 @@ class UserService {
     return availableUsers;
   }
 
+    async getAssignableUsers(designation : string, skill : number[]){
+    try {
+      this.logger.info(`fetching assignable engineers based on ${designation} and ${skill}`)
+      await this.userRepository.findAvailableEngineers({designation, skill});
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   async updateUser(id: string, dto: UpdateUserDto): Promise<User> {
     this.logger.info(`Updating user with ID: ${id}`);
 

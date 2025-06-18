@@ -83,6 +83,7 @@ class ProjectRepository {
     });
   }
 
+
   async update(id: number, project: Project) {
     await this.repository.save({ id, ...project });
   }

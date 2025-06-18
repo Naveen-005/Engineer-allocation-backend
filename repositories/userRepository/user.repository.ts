@@ -114,41 +114,43 @@ class UserRepository {
   }
 
 
-  async findAvailableEngineers(filters: { designation?: string | null; skill?: string | null }) {
-    const query = this.repository
-      .createQueryBuilder("user")
-      .leftJoinAndSelect("user.userSkills", "userSkill")
-      .leftJoinAndSelect("userSkill.skill", "skillAlias")
-      .leftJoinAndSelect("user.designations", "userDesignation")
-      .leftJoinAndSelect("userDesignation.designation", "designationAlias")
-      .leftJoin("user.projectUsers", "pu")
-      .where("user.role = :role", { role: 2 }) // ENGINEER
-      .andWhere("user.deleted_at IS NULL")
-      .andWhere((qb) => {
-        const subQuery = qb
-          .subQuery()
-          .select("pu_sub.user_id")
-          .from("project_user", "pu_sub")
-          .groupBy("pu_sub.user_id")
-          .having("COUNT(pu_sub.project_id) >= 2")
-          .getQuery();
-        return `user.id NOT IN ${subQuery}`;
-      });
+  async findAvailableEngineers(filters: { designation?: string | null; skill?: number[] | null }) {
+  const query = this.repository
+    .createQueryBuilder("user")
+    .leftJoinAndSelect("user.userSkills", "userSkill")
+    .leftJoinAndSelect("userSkill.skill", "skillAlias")
+    .leftJoinAndSelect("user.designations", "userDesignation")
+    .leftJoinAndSelect("userDesignation.designation", "designationAlias")
+    .leftJoin("user.projectUsers", "pu")
+    .where("user.role = :role", { role: 2 }) // ENGINEER
+    .andWhere("user.deleted_at IS NULL")
+    .andWhere((qb) => {
+      const subQuery = qb
+        .subQuery()
+        .select("pu_sub.user_id")
+        .from("project_user", "pu_sub")
+        .groupBy("pu_sub.user_id")
+        .having("COUNT(pu_sub.project_id) >= 2")
+        .getQuery();
+      return `user.id NOT IN ${subQuery}`;
+    });
 
-    if (filters.designation) {
-      query.andWhere("designationAlias.name ILIKE :designation", {
-        designation: `%${filters.designation}%`,
-      });
-    }
-
-    if (filters.skill) {
-      query.andWhere("skillAlias.skill_name ILIKE :skill", {
-        skill: `%${filters.skill}%`,
-      });
-    }
-
-    return await query.getMany();
+  // Filter by designation if provided
+  if (filters.designation) {
+    query.andWhere("designationAlias.name ILIKE :designation", {
+      designation: `%${filters.designation}%`,
+    });
   }
+
+  // Filter by skill IDs if provided
+  if (filters.skill && filters.skill.length > 0) {
+    query.andWhere("skillAlias.id IN (:...skillIds)", {
+      skillIds: filters.skill,
+    });
+  }
+
+  return await query.getMany();
+}
 
 
 

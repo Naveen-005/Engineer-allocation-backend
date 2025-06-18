@@ -56,6 +56,17 @@ class UserController {
     }
   }
 
+  public async getAssignableUsers(req:Request, res:Response, next: NextFunction){
+    try {
+      const designation = req.body.designation;
+      const skills = req.body.skills;
+      const users = await this.userService.getAssignableUsers(designation, skills)
+      res.status(200).json(users)
+    } catch (error) {
+      next(error);
+    }
+  }
+
   public async getAllEngineers(
     req: Request,
     res: Response,
