@@ -14,27 +14,28 @@ export class NoteService {
   private projectRepo = new ProjectRepository(dataSource.getRepository(Project));
   private logger = LoggerService.getInstance(NoteService.name);
 
-  async addNote(dto: CreateNoteDto): Promise<Note> {
-    this.logger.info(`Adding note to project ${dto.projectId} by user ${dto.authorId}`);
+async addNote(dto: CreateNoteDto, authorId: string): Promise<Note> {
+  this.logger.info(`Adding note to project ${dto.projectId} by user ${authorId}`);
 
-    const project = await this.projectRepo.findOneByProjectId(dto.projectId);
-    const author = await this.userRepo.findOneById(dto.authorId);
+  const project = await this.projectRepo.findOneByProjectId(dto.projectId);
+  const author = await this.userRepo.findOneById(authorId);
 
-    if (!project || !author) {
-      this.logger.error('Project or Author not found');
-      throw new Error('Project or Author not found');
-    }
-
-    const note = this.noteRepo.create({
-      content: dto.content,
-      author,
-      project,
-    });
-
-    const savedNote = await this.noteRepo.save(note);
-    this.logger.info(`Note ${savedNote.id} created successfully`);
-    return savedNote;
+  if (!project || !author) {
+    this.logger.error('Project or Author not found');
+    throw new Error('Project or Author not found');
   }
+
+  const note = this.noteRepo.create({
+    content: dto.content,
+    author,
+    project,
+  });
+
+  const savedNote = await this.noteRepo.save(note);
+  this.logger.info(`Note ${savedNote.id} created successfully`);
+  return savedNote;
+}
+
 
   async listNotes(projectId: string): Promise<Note[]> {
     this.logger.info(`Fetching notes for project ${projectId}`);

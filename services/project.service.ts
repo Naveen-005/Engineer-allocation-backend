@@ -13,7 +13,6 @@ import { ProjectUser } from "../entities/projectEntities/projectUser.entity";
 import { Designation } from "../entities/userEntities/designation.entity";
 import {DesignationService} from "./designation.service";
 import ProjectEngineerRequirementRepository from "../repositories/requirement.repository";
-import { error } from "console";
 
 class ProjectService {
   constructor(private projectRepository: ProjectRepository,
