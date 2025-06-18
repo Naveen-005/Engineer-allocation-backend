@@ -12,6 +12,7 @@ import { authMiddleware } from "./middlewares/authMiddleware";
 import { LoggerService } from "./services/logger.service";
 import designationRouter from "./routes/designation.route";
 import skillRouter from "./routes/skill.route";
+import auditLogRouter from "./routes/auditLog.route";
 
 const logger = LoggerService.getInstance("app.ts");
 const server = express();
@@ -31,7 +32,7 @@ server.use("/project",authMiddleware, projectRouter);
 server.use("/projects", noteRouter);
 
 server.use("/users", userRouter);
-
+server.use("/audit-logs", auditLogRouter);
 
 server.use(errorMiddleware);
 
