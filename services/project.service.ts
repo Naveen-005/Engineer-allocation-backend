@@ -52,7 +52,7 @@ class ProjectService {
 
         //loop through each requirement
         for (const req of createProjectDto.requirements) {
-          await requirementRepo.create({
+          const savingreq = await requirementRepo.create({
             project: savedProject,
             designation: { id: req.designation_id } as Designation,
             required_count: req.required_count,
@@ -63,7 +63,10 @@ class ProjectService {
               })
             ),
           });
+
+          console.log("savingreq", savingreq);
         }
+        console.log("saved project" , savedProject);
         return savedProject;
       }
     } catch (error) {
