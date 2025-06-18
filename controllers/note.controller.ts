@@ -26,7 +26,12 @@ class NoteController {
         throw new HttpException(400, JSON.stringify(errors));
       }
 
-      const note = await this.noteService.addNote(dto);
+      const authorId = req.body.authorId;
+      if (!authorId) {
+        throw new HttpException(400, 'Missing authorId in request body');
+      }
+
+      const note = await this.noteService.addNote(dto, authorId);
       res.status(201).send(note);
     } catch (err) {
       next(err);
@@ -36,7 +41,7 @@ class NoteController {
   async listNotes(req: Request, res: Response, next: NextFunction) {
     try {
       const projectId = String(req.params.projectId);
-      if (projectId === 'undefined' || projectId === '') {
+      if (!projectId || projectId === 'undefined') {
         throw new HttpException(400, 'Invalid projectId');
       }
 
@@ -57,8 +62,8 @@ class NoteController {
         throw new HttpException(400, JSON.stringify(errors));
       }
 
-      const updated = await this.noteService.updateNote(id, dto);
-      res.status(200).send(updated);
+      const updatedNote = await this.noteService.updateNote(id, dto);
+      res.status(200).send(updatedNote);
     } catch (err) {
       next(err);
     }
