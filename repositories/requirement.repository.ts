@@ -33,6 +33,12 @@ class ProjectEngineerRequirementRepository {
       relations: ['requirementSkills','project','designation'],
     });
   }
+
+  async getById(id: number): Promise<ProjectEngineerRequirement | null> {
+    return this.repository.findOne({
+      where: { id }
+    });
+  }
 }
 
 export default ProjectEngineerRequirementRepository;

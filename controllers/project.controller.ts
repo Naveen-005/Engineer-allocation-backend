@@ -181,6 +181,10 @@ export default class ProjectController {
 
       await this.projectService.assignEngineerToProject(id, engineers);
 
+      
+
+      resp.status(201).send({"message":"Engineer assigned to project successfully"});
+
       // Audit log only after success
       const auditLogRepo = new AuditLogRepository();
       const actor_user_id = req.user.user_id;
@@ -192,7 +196,8 @@ export default class ProjectController {
         timestamp: new Date(),
       });
 
-      resp.status(201).send({"message":"Engineer assigned to project successfully"});
+
+      
 
     } catch(err){
 
