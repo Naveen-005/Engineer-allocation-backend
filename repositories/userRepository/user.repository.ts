@@ -187,6 +187,52 @@ class UserRepository {
 
     return await query.getMany();
   }
+
+    // Engineers with fewer than 1 active project
+  async getUnderutilizedEngineers(): Promise<User[]> {
+    const query = this.repository
+      .createQueryBuilder("user")
+      .leftJoin("user.projectUsers", "pu")
+      .where("user.role = :role", { role: 2 })
+      .andWhere("user.deleted_at IS NULL")
+      .andWhere((qb) => {
+        const subQuery = qb
+          .subQuery()
+          .select("pu_sub.user_id")
+          .from("project_user", "pu_sub")
+          .groupBy("pu_sub.user_id")
+          .having("COUNT(pu_sub.project_id) >= 1")
+          .getQuery();
+        return `user.id NOT IN ${subQuery}`;
+      });
+
+    return await query.getMany();
+  }
+
+  // Engineers who have been on the same project > 180 days
+  async getRotationNeededEngineers(): Promise<User[]> {
+    return await this.repository
+      .createQueryBuilder("user")
+      .innerJoin("user.projectUsers", "pu")
+      .where("user.role = :role", { role: 2 })
+      .andWhere("user.deleted_at IS NULL")
+      .andWhere("pu.assigned_on <= :threshold", {
+        threshold: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000), // 180 days ago
+      })
+      .andWhere("pu.end_date IS NULL")
+      .getMany();
+  }
+
+  // Engineers with < 2 years experience (for potential upskilling)
+  async getUpskillingCandidates(): Promise<User[]> {
+    return await this.repository
+      .createQueryBuilder("user")
+      .where("user.role = :role", { role: 2 })
+      .andWhere("user.deleted_at IS NULL")
+      .andWhere("user.experience < :exp", { exp: 2 })
+      .getMany();
+  }
+
 }
 
 export default UserRepository;
