@@ -13,6 +13,7 @@ import { ProjectUser } from "../entities/projectEntities/projectUser.entity";
 import { Designation } from "../entities/userEntities/designation.entity";
 import { DesignationService } from "./designation.service";
 import ProjectEngineerRequirementRepository from "../repositories/requirement.repository";
+import { ProjectEngineerRequirementSkill } from "../entities/projectEntities/projectEngineerRequirementSkill.entity";
 
 class ProjectService {
   constructor(
@@ -21,8 +22,9 @@ class ProjectService {
     private designationService: DesignationService,
     private projectUserRepository: ProjectUserRepository,
     private requirementRepository: ProjectEngineerRequirementRepository
-   ) {}
+  ) {}
   async createProject(createProjectDto: CreateProjectDto): Promise<Project> {
+    console.log("here", createProjectDto.requirements)
     try {
       const newProject = new Project(
         createProjectDto.project_id,
@@ -55,9 +57,11 @@ class ProjectService {
             designation: { id: req.designation_id } as Designation,
             required_count: req.required_count,
             is_requested: req.is_requested,
-            // requirementSkills: req.requirement_skills.map((skillId) => ({
-            //   skill: { id: skillId },
-            // })),
+            requirementSkills: req.requirement_skills.map((skill) =>
+              Object.assign(new ProjectEngineerRequirementSkill(), {
+                skill: { skill_id: skill.skill_id },
+              })
+            ),
           });
         }
         return savedProject;
@@ -299,19 +303,16 @@ class ProjectService {
     }
   }
 
-  async getAdditionalRequests(){
-
-    try{
-       
+  async getAdditionalRequests() {
+    try {
       return await this.requirementRepository.getAllAdditionalRequests();
-
-    } catch(error){
-      
-      throw new HttpException(500,`Failed to get additional requests: ${error.message}`);
+    } catch (error) {
+      throw new HttpException(
+        500,
+        `Failed to get additional requests: ${error.message}`
+      );
     }
-
   }
-
 }
 
 export default ProjectService;
