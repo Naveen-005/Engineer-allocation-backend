@@ -46,8 +46,8 @@ class UserService {
     this.logger.info(`User ${savedUser.user_id} created successfully`);
 
     // Now handle relationships using the saved user with ID
-    if (dto.skill_ids && dto.skill_ids.length > 0) {
-      await this.handleUserSkills(savedUser, dto.skill_ids);
+    if (dto.skill_id && dto.skill_id.length > 0) {
+      await this.handleUserSkills(savedUser, dto.skill_id);
     }
 
     if (dto.designation_id) {
@@ -135,8 +135,8 @@ class UserService {
     await this.userRepository.update(id, user);
 
     // Append new skills without removing existing ones
-    if (dto.skill_ids && dto.skill_ids.length > 0) {
-      await this.handleUserSkills(user, dto.skill_ids);
+    if (dto.skill_id && dto.skill_id.length > 0) {
+      await this.handleUserSkills(user, dto.skill_id);
     }
 
     // Update experience (if provided)
@@ -145,7 +145,7 @@ class UserService {
     }
 
     // Update designation (if provided)
-    if (dto.designation_id) {
+    if (dto.designation_id  && dto.designation_id.length > 0) {
       await this.handleUserDesignation(user, dto.designation_id);
     }
 
@@ -167,7 +167,7 @@ class UserService {
 
   private async handleUserDesignation(
     user: User,
-    designationId: number
+    designationId: number[]
   ): Promise<void> {
     this.logger.info(`Handling designation ${designationId} for user ${user.user_id}`);
 
@@ -176,20 +176,26 @@ class UserService {
       user: { id: user.id }, // Use the primary key ID
     });
 
-    const designation = await this.designationRepository.findOneBy({
-      id: designationId,
+    const designations = await this.designationRepository.find({
+      where: { id: In(designationId) },
     });
-    if (!designation) {
-      this.logger.error(`Designation with ID ${designationId} not found`);
-      throw new Error(`Designation with ID ${designationId} not found`);
+
+    if (designations.length !== designationId.length) {
+      const foundIds = designations.map((d) => d.id);
+      const missingIds = designationId.filter((id) => !foundIds.includes(id));
+      this.logger.error(`Designations not found: ${missingIds.join(", ")}`);
+      throw new Error(`Designations not found: ${missingIds.join(", ")}`);
     }
 
-    const userDesignation = new UserDesignation();
-    userDesignation.user = user; // This now has the proper ID
-    userDesignation.designation = designation;
+    const userDesignations = designations.map((designation) => {
+      const us = new UserDesignation();
+      us.user = user; // This now has the proper ID
+      us.designation = designation;
+      return us;
+    });
 
-    await this.userDesignationRepository.save(userDesignation);
-    this.logger.info(`Designation ${designationId} assigned to user ${user.user_id}`);
+    await this.userDesignationRepository.save(userDesignations);
+    this.logger.info(`Designations ${designationId.join(", ")} assigned to user ${user.user_id}`);
   }
 
   private async handleUserSkills(

@@ -9,6 +9,7 @@ import {
   ArrayNotEmpty,
   IsArray,
   IsInt,
+  isArray,
 } from "class-validator";
 
 export class CreateUserDto {
@@ -41,11 +42,11 @@ export class CreateUserDto {
 
   @IsOptional()
   @IsArray()
-  @ArrayNotEmpty()
   @IsInt({ each: true })
-  skill_ids?: number[];
+  skill_id?: number[];
 
   @IsOptional()
-  @IsInt()
-  designation_id?: number;
+  @IsArray()
+  @IsInt({ each: true })
+  designation_id?: number[];
 }

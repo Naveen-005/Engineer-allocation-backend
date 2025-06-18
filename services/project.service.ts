@@ -11,14 +11,16 @@ import ProjectRepository from "../repositories/projectRepository/project.reposit
 import UserService from "./user.service";
 import { ProjectUser } from "../entities/projectEntities/projectUser.entity";
 import { Designation } from "../entities/userEntities/designation.entity";
-import {DesignationService} from "./designation.service";
+import { DesignationService } from "./designation.service";
 import ProjectEngineerRequirementRepository from "../repositories/requirement.repository";
 
 class ProjectService {
-  constructor(private projectRepository: ProjectRepository,
+  constructor(
+    private projectRepository: ProjectRepository,
     private userService: UserService,
     private designationService: DesignationService,
     private projectUserRepository: ProjectUserRepository,
+    private requirementRepository: ProjectEngineerRequirementRepository
    ) {}
   async createProject(createProjectDto: CreateProjectDto): Promise<Project> {
     try {
@@ -53,6 +55,9 @@ class ProjectService {
             designation: { id: req.designation_id } as Designation,
             required_count: req.required_count,
             is_requested: req.is_requested,
+            // requirementSkills: req.requirement_skills.map((skillId) => ({
+            //   skill: { id: skillId },
+            // })),
           });
         }
         return savedProject;
@@ -108,9 +113,15 @@ class ProjectService {
     }
   }
 
-  async getProjectsByUserId(userId: number): Promise<Project[]> {
+  async getProjectsByUserId(
+    userId: number,
+    filter?: string
+  ): Promise<Project[]> {
     try {
-      const projects = await this.projectRepository.findByEmployeeId(userId);
+      const projects = await this.projectRepository.findByEmployeeId(
+        userId,
+        filter
+      );
       return projects;
     } catch (error) {
       throw new HttpException(
@@ -192,7 +203,7 @@ class ProjectService {
     return requirementRepo.create(requirementData);
   }
   // Service for Deleting Project Requirements Uses functions in requirement.repository.ts
-   async deleteProjectRequirement(requirementId: number): Promise<void> {
+  async deleteProjectRequirement(requirementId: number): Promise<void> {
     const requirementRepo = new ProjectEngineerRequirementRepository();
     await requirementRepo.delete(requirementId);
   }
@@ -212,26 +223,44 @@ class ProjectService {
     }
   }
 
-  async assignEngineerToProject(id: number, engineers: {user_id:string,designation_id:number}[]): Promise<void> {
+  async assignEngineerToProject(
+    id: number,
+    engineers: { user_id: string; requirement_id: number }[]
+  ): Promise<void> {
     try {
       const project = await this.projectRepository.findOneById(id);
       if (!project) {
         throw new HttpException(404, `Project with ID ${id} not found`);
       }
 
-      const projectUsers = await Promise.all(engineers.map(async engineer => {
-        const user = await this.userService.getUserProjects(engineer.user_id);
-        console.log("User Projects:", user);
-        if(user.projectUsers.length+user.leadProjects.length+user.managedProjects.length >= 2) {
-          throw new HttpException(400, `User with ID ${engineer.user_id} is already assigned in maximum mumber of projects`);
-        }
-        const projectUser = new ProjectUser();
-        projectUser.project = project;
-        projectUser.user = await this.userService.getUserById(engineer.user_id);
-        projectUser.designation = await this.designationService.getDesignationById(engineer.designation_id);
-        projectUser.assigned_on = new Date();
-        return projectUser;
-      }));
+      const projectUsers = await Promise.all(
+        engineers.map(async (engineer) => {
+          const user = await this.userService.getUserProjects(engineer.user_id);
+          if (
+            user.projectUsers.length +
+              user.leadProjects.length +
+              user.managedProjects.length >=
+            2
+          ) {
+            throw new HttpException(
+              400,
+              `User with ID ${engineer.user_id} is already assigned in maximum mumber of projects`
+            );
+          }
+          const projectUser = new ProjectUser();
+          projectUser.project = project;
+          projectUser.user = await this.userService.getUserById(
+            engineer.user_id
+          );
+          projectUser.requirement =
+            await this.requirementRepository.getById(
+              engineer.requirement_id
+            );
+
+          projectUser.assigned_on = new Date();
+          return projectUser;
+        })
+      );
 
       await this.projectRepository.saveProjectUsers(projectUsers);
     } catch (error) {
@@ -242,37 +271,49 @@ class ProjectService {
     }
   }
 
-  async removeEngineerFromProject(id: number, userIds: string[]): Promise<void> {
-
-    try{
-
-      await Promise.all(userIds.map(async (userId) => {
-        
-        let projectAssignment = await this.projectUserRepository.findUserAssignmentByProjectIdAndUserId(userId, id);
-        if(!projectAssignment){
-          throw new Error("User assignment not found")
-        }
-        projectAssignment.end_date = new Date();
-        await this.projectUserRepository.update(projectAssignment);
-
-      }));
-
-
-
-
-
+  async removeEngineerFromProject(
+    id: number,
+    userIds: string[]
+  ): Promise<void> {
+    try {
+      await Promise.all(
+        userIds.map(async (userId) => {
+          let projectAssignment =
+            await this.projectUserRepository.findUserAssignmentByProjectIdAndUserId(
+              userId,
+              id
+            );
+          if (!projectAssignment) {
+            throw new Error("User assignment not found");
+          }
+          projectAssignment.end_date = new Date();
+          await this.projectUserRepository.update(projectAssignment);
+        })
+      );
     } catch (error) {
       throw new HttpException(
         500,
         `Failed to remove engineer from project: ${error.message}`
       );
     }
+  }
+
+  async getAdditionalRequests(){
+
+    try{
+       
+      return await this.requirementRepository.getAllAdditionalRequests();
+
+    } catch(error){
+      
+      throw new HttpException(500,`Failed to get additional requests: ${error.message}`);
+    }
 
   }
+
 }
 
 export default ProjectService;
-
 
 /*
 EXAMPLE BODY
@@ -299,5 +340,16 @@ CREATE PROJECT :
       }
       ]
     }
+
+
+    {
+    "user_id" : "KV30",
+    "name" : "Test PM",
+    "email" : "testpm@email.com",
+    "password" : "qwerty",
+    "joined_at" : "2025-06-15T00:00:00Z",
+    "experience" : 3,
+    "role_id" : 2
+}
 
 */

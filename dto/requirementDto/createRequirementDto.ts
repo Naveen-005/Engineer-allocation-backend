@@ -1,4 +1,6 @@
-import { IsBoolean, IsInt } from "class-validator";
+import { IsArray, IsBoolean, IsInt, ValidateNested } from "class-validator";
+import { Skill } from "../../entities/skill.entity";
+import { ProjectEngineerRequirementSkill } from "../../entities/projectEntities/projectEngineerRequirementSkill.entity";
 
 class CreateRequirementDto {
   @IsInt()
@@ -12,6 +14,10 @@ class CreateRequirementDto {
 
   @IsBoolean()
   is_requested: boolean;
+
+  @IsArray()
+  requirement_skills: ProjectEngineerRequirementSkill[]; 
+
 }
 
 export default CreateRequirementDto
