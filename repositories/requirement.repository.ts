@@ -27,16 +27,26 @@ class ProjectEngineerRequirementRepository {
     await this.repository.softDelete(id);
   }
 
-  async getAllAdditionalRequests(): Promise<ProjectEngineerRequirement[]> {
-    return this.repository.find({
-      where: { is_requested: true },
-      relations: ['requirementSkills','project','designation'],
-    });
-  }
+async getAllAdditionalRequests(): Promise<ProjectEngineerRequirement[]> {
+  return this.repository.find({
+    where: { is_requested: true },
+    relations: {
+      requirementSkills: {
+        skill: true,
+      },
+      project: true,
+      designation: true,
+      // 'requirementSkills.skill',
+      // 'project',
+      // 'designation',
+    },
+  });
+}
 
   async getById(id: number): Promise<ProjectEngineerRequirement | null> {
     return this.repository.findOne({
-      where: { id }
+      where: { id },
+      relations: ['requirementSkills', 'project', 'designation'],
     });
   }
 }
