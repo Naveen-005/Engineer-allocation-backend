@@ -225,7 +225,7 @@ class ProjectService {
 
   async assignEngineerToProject(
     id: number,
-    engineers: { user_id: string; designation_id: number }[]
+    engineers: { user_id: string; requirement_id: number }[]
   ): Promise<void> {
     try {
       const project = await this.projectRepository.findOneById(id);
@@ -236,7 +236,6 @@ class ProjectService {
       const projectUsers = await Promise.all(
         engineers.map(async (engineer) => {
           const user = await this.userService.getUserProjects(engineer.user_id);
-          console.log("User Projects:", user);
           if (
             user.projectUsers.length +
               user.leadProjects.length +
@@ -253,10 +252,10 @@ class ProjectService {
           projectUser.user = await this.userService.getUserById(
             engineer.user_id
           );
-          // projectUser.designation =
-          //   await this.designationService.getDesignationById(
-          //     engineer.designation_id
-          //   );
+          projectUser.requirement =
+            await this.requirementRepository.getById(
+              engineer.requirement_id
+            );
 
           projectUser.assigned_on = new Date();
           return projectUser;
