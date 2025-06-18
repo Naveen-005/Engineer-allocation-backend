@@ -109,8 +109,8 @@ class UserService {
 
     async getAssignableUsers(designation : string, skill : number[]){
     try {
-      this.logger.info(`fetching assignable engineers based on ${designation} and ${skill}`)
-      await this.userRepository.findAvailableEngineers({designation, skill});
+      this.logger.info(`fetching assignable engineers based on availability and ${skill}`)
+      return await this.userRepository.findAssignableEngineers( {skill});
     } catch (error) {
       console.log(error)
     }

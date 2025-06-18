@@ -79,7 +79,7 @@ class UserRepository {
   // async findUserProjects(userId: string): Promise<User>{
 
   //   return this.repository.findOne({
-  //     where: { 
+  //     where: {
   //       user_id: userId
   //     },
   //     relations: {
@@ -87,74 +87,106 @@ class UserRepository {
   //         where: { end_date: IsNull() }
   //       },
   //       leadProjects: {
-  //         where: { enddate: IsNull() } 
+  //         where: { enddate: IsNull() }
   //       },
   //       managedProjects: {
-  //         where: { enddate: IsNull() }  
+  //         where: { enddate: IsNull() }
   //       }
   //     }
-        
+
   //   });
 
   // }
   async findUserProjects(userId: string): Promise<User> {
     const user = await this.repository.findOne({
       where: { user_id: userId },
-      relations: ['projectUsers', 'leadProjects', 'managedProjects']
+      relations: ["projectUsers", "leadProjects", "managedProjects"],
     });
 
     if (user) {
       // Filter out projects with non-null end dates
-      user.projectUsers = user.projectUsers?.filter(p => p.end_date === null) || [];
-      user.leadProjects = user.leadProjects?.filter(p => p.enddate === null) || [];
-      user.managedProjects = user.managedProjects?.filter(p => p.enddate === null) || [];
+      user.projectUsers =
+        user.projectUsers?.filter((p) => p.end_date === null) || [];
+      user.leadProjects =
+        user.leadProjects?.filter((p) => p.enddate === null) || [];
+      user.managedProjects =
+        user.managedProjects?.filter((p) => p.enddate === null) || [];
     }
 
     return user;
   }
 
+  async findAvailableEngineers(filters: {
+    designation?: string | null;
+    skill?: string | null;
+  }) {
+    const query = this.repository
+      .createQueryBuilder("user")
+      .leftJoinAndSelect("user.userSkills", "userSkill")
+      .leftJoinAndSelect("userSkill.skill", "skillAlias")
+      .leftJoinAndSelect("user.designations", "userDesignation")
+      .leftJoinAndSelect("userDesignation.designation", "designationAlias")
+      .leftJoin("user.projectUsers", "pu")
+      .where("user.role = :role", { role: 2 }) // ENGINEER
+      .andWhere("user.deleted_at IS NULL")
+      .andWhere((qb) => {
+        const subQuery = qb
+          .subQuery()
+          .select("pu_sub.user_id")
+          .from("project_user", "pu_sub")
+          .groupBy("pu_sub.user_id")
+          .having("COUNT(pu_sub.project_id) >= 2")
+          .getQuery();
+        return `user.id NOT IN ${subQuery}`;
+      });
 
-  async findAvailableEngineers(filters: { designation?: string | null; skill?: number[] | null }) {
-  const query = this.repository
-    .createQueryBuilder("user")
-    .leftJoinAndSelect("user.userSkills", "userSkill")
-    .leftJoinAndSelect("userSkill.skill", "skillAlias")
-    .leftJoinAndSelect("user.designations", "userDesignation")
-    .leftJoinAndSelect("userDesignation.designation", "designationAlias")
-    .leftJoin("user.projectUsers", "pu")
-    .where("user.role = :role", { role: 2 }) // ENGINEER
-    .andWhere("user.deleted_at IS NULL")
-    .andWhere((qb) => {
-      const subQuery = qb
-        .subQuery()
-        .select("pu_sub.user_id")
-        .from("project_user", "pu_sub")
-        .groupBy("pu_sub.user_id")
-        .having("COUNT(pu_sub.project_id) >= 2")
-        .getQuery();
-      return `user.id NOT IN ${subQuery}`;
-    });
+    if (filters.designation) {
+      query.andWhere("designationAlias.name ILIKE :designation", {
+        designation: `%${filters.designation}%`,
+      });
+    }
 
-  // Filter by designation if provided
-  if (filters.designation) {
-    query.andWhere("designationAlias.name ILIKE :designation", {
-      designation: `%${filters.designation}%`,
-    });
+    if (filters.skill) {
+      query.andWhere("skillAlias.skill_name ILIKE :skill", {
+        skill: `%${filters.skill}%`,
+      });
+    }
+
+    return await query.getMany();
   }
+  
+  async findAssignableEngineers(filters: { skill?: number[] | null }) {
+    let query = this.repository
+      .createQueryBuilder("user")
+      .leftJoin("user.projectUsers", "pu")
+      .where("user.role = :role", { role: 2 }) // ENGINEER
+      .andWhere("user.deleted_at IS NULL")
+      .andWhere((qb) => {
+        const subQuery = qb
+          .subQuery()
+          .select("pu_sub.user_id")
+          .from("project_user", "pu_sub")
+          .groupBy("pu_sub.user_id")
+          .having("COUNT(pu_sub.project_id) >= 2")
+          .getQuery();
+        return `user.id NOT IN ${subQuery}`;
+      });
 
-  // Filter by skill IDs if provided
-  if (filters.skill && filters.skill.length > 0) {
-    query.andWhere("skillAlias.id IN (:...skillIds)", {
-      skillIds: filters.skill,
-    });
+    if (filters.skill && filters.skill.length > 0) {
+      query = query
+        .innerJoin("user.userSkills", "userSkill")
+        .innerJoin("userSkill.skill", "skillAlias")
+        .andWhere("skillAlias.id IN (:...skillIds)", {
+          skillIds: filters.skill,
+        })
+        .groupBy("user.id")
+        .having("COUNT(DISTINCT skillAlias.id) = :skillCount", {
+          skillCount: filters.skill.length,
+        });
+    }
+
+    return await query.getMany();
   }
-
-  return await query.getMany();
-}
-
-
-
-
 }
 
 export default UserRepository;
