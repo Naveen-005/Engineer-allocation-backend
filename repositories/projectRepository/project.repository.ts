@@ -4,10 +4,9 @@ import { ProjectUser } from "../../entities/projectEntities/projectUser.entity";
 
 class ProjectRepository {
   constructor(private repository: Repository<Project>) {}
-  
 
   async create(project: Project): Promise<Project> {
-    console.log(project)
+    console.log(project);
     return this.repository.save(project);
   }
 
@@ -25,7 +24,7 @@ class ProjectRepository {
 
   async findOneById(id: number): Promise<Project> {
     return this.repository.findOne({
-      where: { id  },
+      where: { id },
       relations: {
         pm: true,
         lead: true,
@@ -49,19 +48,38 @@ class ProjectRepository {
     });
   }
 
-  async findByEmployeeId(userId: number, filter?:string): Promise<Project[]> {
+  async findByEmployeeId(userId: number, filter?: string): Promise<Project[]> {
     const enddateCondition =
-    filter === "inprogress" ? IsNull() : filter === "completed" ? Not(IsNull()) : undefined;
+      filter === "inprogress"
+        ? IsNull()
+        : filter === "completed"
+        ? Not(IsNull())
+        : undefined;
+
+    const where = [];
+
+    if (enddateCondition !== undefined) {
+      where.push({ pm: { id: userId }, enddate: enddateCondition });
+      where.push({ lead: { id: userId }, enddate: enddateCondition });
+      where.push({
+        projectUsers: { user: { id: userId } },
+        enddate: enddateCondition,
+      });
+    } else {
+      where.push({ pm: { id: userId } });
+      where.push({ lead: { id: userId } });
+      where.push({ projectUsers: { user: { id: userId } } });
+    }
+
     return this.repository.find({
+      where,
       relations: {
-        projectUsers: true
+        pm: true,
+        lead: true,
+        projectUsers: { user: true },
+        notes: { author: true },
+        requirements: true,
       },
-      where: [
-        { pm: { id: userId } },
-        { lead: { id: userId } },
-        { projectUsers: { user: { id: userId} } },
-        { enddate : enddateCondition}
-      ],
     });
   }
 
