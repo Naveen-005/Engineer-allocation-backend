@@ -30,7 +30,6 @@ export class AuthService {
         this.logger.info(`Password validated for user: ${email}, generating token`);
         const payload:JwtPayload={
             user_id:user.user_id,
-            id:user.id,
             name:user.name,
             email:user.email,
             role:user.role.role_name

@@ -5,7 +5,7 @@ import { AuditActionType } from "../entities/auditLog.entity";
 export function auditLogMiddleware(actionType: AuditActionType) {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const actor_user_id = req.user?.id;
+      const actor_user_id = req.user?.user_id;
       const change_summary = req.body;
       if (!actor_user_id) {
         // Optionally skip logging if no user is found
