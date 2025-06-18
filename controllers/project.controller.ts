@@ -6,13 +6,15 @@ import { Request, Response, Router, NextFunction } from "express";
 import { checkRole } from "../middlewares/authorizationMiddleware";
 import { auditLogMiddleware } from "../middlewares/auditLogMiddleware";
 import { AuditActionType } from "../entities/auditLog.entity";
+import { verifyRole, verifyUser } from "../utils/authorization";
+import { verify } from "crypto";
 import AuditLogRepository from "../repositories/auditLog.repository";
 
 export default class ProjectController {
   
   constructor(private projectService: ProjectService, router: Router) {
     router.post("/",auditLogMiddleware(AuditActionType.CREATE_PROJECT), this.createProject.bind(this));
-    router.get("/", checkRole(["HR"]), this.getAllProjects.bind(this));
+    router.get("/", this.getAllProjects.bind(this));
     router.get("/:id", this.getProjectById.bind(this));
     router.get("/user/:userId", this.getProjectsByUserId.bind(this));
     router.put("/:id",auditLogMiddleware(AuditActionType.UPDATE_PROJECT), this.updateProject.bind(this));
@@ -154,6 +156,23 @@ export default class ProjectController {
     try{
 
       const id = Number(req.params.id);
+
+      
+
+      const project = await this.projectService.getProjectById(id);
+      if (!project) {
+        throw new HttpException(
+          404,
+          `Project with the id ${id} does not exist`
+        );
+      }
+
+      if(!(verifyRole(req,["HR"]) || verifyUser(req, [project.pm.id,project.lead.id]))){
+
+        throw new HttpException(403, "User is not authorized");
+
+      }
+
       const {engineers}= req.body;
 
       await this.projectService.assignEngineerToProject(id, engineers);
@@ -172,7 +191,7 @@ export default class ProjectController {
       resp.status(201).send({"message":"Engineer assigned to project successfully"});
 
     } catch(err){
-        console.log(err)
+
         next(err);
     }
 
@@ -183,6 +202,19 @@ export default class ProjectController {
     try{
 
       const id = Number(req.params.id);
+      const project = await this.projectService.getProjectById(id);
+      if (!project) {
+        throw new HttpException(
+          404,
+          `Project with the id ${id} does not exist`
+        );
+      }
+
+      if(!(verifyRole(req,["HR"]) || verifyUser(req, [project.pm.id,project.lead.id]))){
+
+        throw new HttpException(403, "User is not authorized");
+
+      }
       const {engineers}= req.body;
 
       await this.projectService.removeEngineerFromProject(id, engineers);

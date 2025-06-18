@@ -221,7 +221,6 @@ class ProjectService {
 
       const projectUsers = await Promise.all(engineers.map(async engineer => {
         const user = await this.userService.getUserProjects(engineer.user_id);
-        console.log("User Projects:", user);
         if(user.projectUsers.length+user.leadProjects.length+user.managedProjects.length >= 2) {
           throw new HttpException(400, `User with ID ${engineer.user_id} is already assigned in maximum mumber of projects`);
         }
