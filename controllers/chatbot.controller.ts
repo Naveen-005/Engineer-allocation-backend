@@ -12,7 +12,7 @@ class ChatbotController {
   }
 
   async handleQuery(req: Request, res: Response, next: NextFunction) {
-    const logger = new LoggerService("ChatbotController");
+    const logger = LoggerService.getInstance("ChatbotController");
     try {
       const dto = plainToInstance(ChatRequestDto, req.body);
       const errors = await validate(dto);
@@ -27,18 +27,19 @@ class ChatbotController {
       logger.info(`Intent type: ${response.intentType}`);
       logger.info(`Parsed intent: ${JSON.stringify(response.parsedIntent)}`);
       logger.info(`Found ${response.results?.length || 0} matching engineers`);
+      logger.info(`Message: ${response.message}`);
 
       return res.status(200).json({
         query: dto.query,
         intentType: response.intentType,
-        message: response.message,
+        message: response.message, // ✅ use message from ChatbotService
         parsedIntent: response.parsedIntent,
-        results: response.results?.map((user) => ({
+        results: response.results.map((user) => ({
           id: user.id,
           name: user.name,
           email: user.email,
           experience: user.experience,
-        })) || [],
+        })),
       });
     } catch (err) {
       logger.error(`Chatbot error: ${err}`);
