@@ -19,6 +19,4 @@ export class Designation extends AbstractEntity {
   @OneToMany(() => ProjectEngineerRequirement, (r) => r.designation)
   requirements: ProjectEngineerRequirement[];
 
-  @OneToMany(() => ProjectUser, (pu) => pu.designation)
-  projectAssignments: ProjectUser[];
 }
