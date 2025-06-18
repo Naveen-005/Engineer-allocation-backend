@@ -1,4 +1,3 @@
-// src/services/chatbot.service.ts
 import { LoggerService } from "./logger.service";
 import dataSource from "../db/data-source";
 import { User } from "../entities/userEntities/user.entity";
@@ -9,6 +8,25 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
 });
 
+interface ParsedIntent {
+  designation: string | null;
+  skill: string | null;
+}
+
+interface ChatbotResult {
+  id: string;
+  name: string;
+  email: string;
+  experience: number;
+  // optionally: designation/skills if you want to extend
+}
+
+interface ChatbotResponse {
+  query: string;
+  parsedIntent: ParsedIntent;
+  results: ChatbotResult[];
+}
+
 export class ChatbotService {
   private userRepo = new UserRepository(dataSource.getRepository(User));
   private logger = LoggerService.getInstance(ChatbotService.name);
@@ -16,51 +34,44 @@ export class ChatbotService {
   /**
    * Public method exposed to the controller
    * @param query user input message
-   * @returns string bot reply
+   * @returns structured bot response
    */
-  async processQuery(query: string): Promise<string> {
+  async processQuery(query: string): Promise<ChatbotResponse> {
     try {
       const { results, parsedIntent } = await this.handleQuery(query);
 
-      if (results.length === 0) {
-        return `🤖 Sorry, I couldn’t find any available engineers matching your query: "${query}".`;
-      }
+      const mappedResults: ChatbotResult[] = results.map((e) => ({
+        id: e.user_id,
+        name: e.name,
+        email: e.email,
+        experience: e.experience ?? 0,
+        // Add skills/designations here if needed
+      }));
 
-      const engineerList = results
-        .map((e) => `- ${e.name} (${e.designations})`)
-        .join("\n");
-
-      return `✅ Found ${results.length} matching engineer(s):\n${engineerList}`;
+      return {
+        query,
+        parsedIntent,
+        results: mappedResults,
+      };
     } catch (err) {
       this.logger.error(`Chatbot error: ${err}`);
-      return "⚠️ Sorry, something went wrong while processing your request.";
+      throw err;
     }
   }
 
-  /**
-   * Handles full flow: OpenAI intent extraction → DB query
-   */
   private async handleQuery(query: string) {
     this.logger.info(`Processing chatbot query: ${query}`);
 
-    // Step 1: Extract intent using OpenAI
     const parsedIntent = await this.extractIntent(query);
     this.logger.info(`Parsed intent: ${JSON.stringify(parsedIntent)}`);
 
-    // Step 2: Query DB using extracted intent
     const engineers = await this.userRepo.findAvailableEngineers(parsedIntent);
     this.logger.info(`Found ${engineers.length} matching engineers`);
 
     return { results: engineers, parsedIntent };
   }
 
-  /**
-   * Uses OpenAI to parse designation and skill from user's question
-   */
-  private async extractIntent(query: string): Promise<{
-    designation?: string;
-    skill?: string;
-  }> {
+  private async extractIntent(query: string): Promise<ParsedIntent> {
     const systemPrompt = `
 You are a backend service that extracts structured filters from user queries about engineers.
 Given a natural language query, return a JSON object with:
@@ -81,7 +92,7 @@ Examples:
 `;
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o", // or gpt-3.5-turbo
+      model: "gpt-4o",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: query },

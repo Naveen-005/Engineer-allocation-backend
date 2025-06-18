@@ -30,7 +30,7 @@ server.use("/skills", skillRouter);
 server.use("/auth", authRouter);
 server.use("/project",authMiddleware, projectRouter);
 server.use("/projects", noteRouter);
-server.use("/api", chatbotRouter);
+server.use("/chatbot", chatbotRouter);
 server.use("/users", userRouter);
 
 

@@ -1,8 +1,7 @@
-// src/dto/chat-request.dto.ts
-import { IsString, Length } from "class-validator";
+import { IsString, IsNotEmpty } from "class-validator";
 
 export class ChatRequestDto {
   @IsString()
-  @Length(3, 500)
-  query!: string;
+  @IsNotEmpty({ message: "Query string must not be empty" })
+  query: string;
 }
