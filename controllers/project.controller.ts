@@ -15,6 +15,7 @@ export default class ProjectController {
   constructor(private projectService: ProjectService, router: Router) {
     router.post("/",auditLogMiddleware(AuditActionType.CREATE_PROJECT), this.createProject.bind(this));
     router.get("/", this.getAllProjects.bind(this));
+    router.get("/requests", checkRole(["HR"]), this.getAdditionalRequests.bind(this));
     router.get("/:id", this.getProjectById.bind(this));
     router.get("/user/:userId", this.getProjectsByUserId.bind(this));
     router.put("/:id",auditLogMiddleware(AuditActionType.UPDATE_PROJECT), this.updateProject.bind(this));
@@ -22,6 +23,7 @@ export default class ProjectController {
     router.post("/:id/engineer", this.assignEngineerToProject.bind(this));
     router.delete("/:id/engineer", auditLogMiddleware(AuditActionType.REMOVE_USER), this.removeEngineerFromProject.bind(this));
     //router for project requirements
+    
     router.post("/requirement", auditLogMiddleware(AuditActionType.REQUIREMENTS_UPDATE), this.addProjectRequirement.bind(this));
     router.put("/requirement/:requirementId", auditLogMiddleware(AuditActionType.REQUIREMENTS_UPDATE), this.updateProjectRequirement.bind(this));
     router.delete("/requirement/:requirementId", auditLogMiddleware(AuditActionType.REQUIREMENTS_UPDATE), this.deleteProjectRequirement.bind(this))
@@ -222,7 +224,22 @@ export default class ProjectController {
 
       resp.status(204).send({"message":"Engineer removed from project"});
     } catch(err){
-        console.log(err)
+        
+        next(err);
+    }
+  }
+
+  async getAdditionalRequests(req: Request, resp: Response, next: NextFunction) {
+
+    try{
+
+      const additionalRequests = await this.projectService.getAdditionalRequests();
+      resp.status(200).json({"message":"success",
+        data: additionalRequests
+      });
+
+    } catch(err){
+        
         next(err);
     }
   }

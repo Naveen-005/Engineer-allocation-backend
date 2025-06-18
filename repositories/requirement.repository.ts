@@ -26,6 +26,13 @@ class ProjectEngineerRequirementRepository {
     await this.skillRepository.softDelete({ requirement: { id } });
     await this.repository.softDelete(id);
   }
+
+  async getAllAdditionalRequests(): Promise<ProjectEngineerRequirement[]> {
+    return this.repository.find({
+      where: { is_requested: true },
+      relations: ['requirementSkills','project','designation'],
+    });
+  }
 }
 
 export default ProjectEngineerRequirementRepository;
