@@ -112,6 +112,22 @@ class UserRepository {
 
     return user;
   }
+
+
+  async findAvailableEngineers(filters: { designation?: string | null; skill?: string | null }) {
+    const query = this.repository.createQueryBuilder("user")
+      .where("user.isAvailable = :isAvailable", { isAvailable: true });
+
+    if (filters.designation) {
+      query.andWhere("user.designation = :designation", { designation: filters.designation });
+    }
+    if (filters.skill) {
+      query.andWhere(":skill = ANY(user.skills)", { skill: filters.skill });
+    }
+
+    return await query.getMany();
+  }
+
 }
 
 export default UserRepository;
