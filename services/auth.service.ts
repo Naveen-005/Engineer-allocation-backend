@@ -2,7 +2,7 @@ import UserService from "./user.service";
 import { JwtPayload } from "../dto/jwt-payload";
 import bcrypt from "bcrypt";
 import HttpException from "../exceptions/httpException";
-import jwt from 'jsonwebtoken';
+import jwt from "jsonwebtoken";
 import { JWT_SECRET, JWT_VALIDITY } from "../utils/constants";
 import { LoggerService } from '../services/logger.service';
 
@@ -30,7 +30,6 @@ export class AuthService {
         this.logger.info(`Password validated for user: ${email}, generating token`);
         const payload:JwtPayload={
             user_id:user.user_id,
-            id:user.id,
             name:user.name,
             email:user.email,
             role:user.role.role_name
