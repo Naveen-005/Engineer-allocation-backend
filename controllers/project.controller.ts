@@ -72,7 +72,9 @@ export default class ProjectController {
   async getProjectsByUserId(req: Request, resp: Response, next: NextFunction) {
     try {
       const userId = Number(req.params.userId);
-      const projects = await this.projectService.getProjectsByUserId(userId);
+      const filter = req.query.filter as string;
+      console.log(userId, filter)
+      const projects = await this.projectService.getProjectsByUserId(userId, filter);
       if (!projects || projects.length === 0) {
         throw new HttpException(
           404,

@@ -40,8 +40,8 @@ export class AuthService {
         return{
             tokenType:"Bearer",
             accessToken:token,
-            role:user.role.role_name,
-            user_id:user.user_id
+            role : user.role.role_name,
+            user_id : user.user_id
         }
     }
 }

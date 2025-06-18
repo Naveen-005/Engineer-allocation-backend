@@ -1,4 +1,4 @@
-import { In, Repository } from "typeorm";
+import { In, IsNull, Not, Repository } from "typeorm";
 import { Project } from "../../entities/projectEntities/project.entity";
 import { ProjectUser } from "../../entities/projectEntities/projectUser.entity";
 
@@ -49,7 +49,9 @@ class ProjectRepository {
     });
   }
 
-  async findByEmployeeId(userId: number): Promise<Project[]> {
+  async findByEmployeeId(userId: number, filter?:string): Promise<Project[]> {
+    const enddateCondition =
+    filter === "inprogress" ? IsNull() : filter === "completed" ? Not(IsNull()) : undefined;
     return this.repository.find({
       relations: {
         projectUsers: true
@@ -58,6 +60,7 @@ class ProjectRepository {
         { pm: { id: userId } },
         { lead: { id: userId } },
         { projectUsers: { user: { id: userId} } },
+        { enddate : enddateCondition}
       ],
     });
   }
