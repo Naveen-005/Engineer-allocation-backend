@@ -19,9 +19,9 @@ class ProjectService {
     private projectRepository: ProjectRepository,
     private userService: UserService,
     private designationService: DesignationService,
-    private projectUserRepository: ProjectUserRepository
-  ) {}
-
+    private projectUserRepository: ProjectUserRepository,
+    private requirementRepository: ProjectEngineerRequirementRepository
+   ) {}
   async createProject(createProjectDto: CreateProjectDto): Promise<Project> {
     try {
       const newProject = new Project(
@@ -298,6 +298,20 @@ class ProjectService {
       );
     }
   }
+
+  async getAdditionalRequests(){
+
+    try{
+       
+      return await this.requirementRepository.getAllAdditionalRequests();
+
+    } catch(error){
+      
+      throw new HttpException(500,`Failed to get additional requests: ${error.message}`);
+    }
+
+  }
+
 }
 
 export default ProjectService;

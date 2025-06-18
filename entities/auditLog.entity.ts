@@ -28,11 +28,11 @@ export class AuditLog {
   id: number;
 
   @ManyToOne(() => User)
-  @JoinColumn({ name: "actor_user_id" })
+  @JoinColumn({ name: "actor_user_id", referencedColumnName: "user_id" })
   actor: User;
 
   @Column()
-  actor_user_id: number;
+  actor_user_id: string;
 
   @Column({
     type: "enum",

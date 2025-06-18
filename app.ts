@@ -27,7 +27,7 @@ server.get("/", (req: Request, res: Response) => {
 server.use("/designations", designationRouter);
 server.use("/skills", skillRouter);
 server.use("/auth", authRouter);
-server.use("/project", authMiddleware, projectRouter);
+server.use("/project",authMiddleware, projectRouter);
 server.use("/projects", noteRouter);
 
 server.use("/users", userRouter);
