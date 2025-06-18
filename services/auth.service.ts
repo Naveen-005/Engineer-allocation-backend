@@ -28,7 +28,9 @@ export class AuthService {
         const token = jwt.sign(payload,JWT_SECRET,{expiresIn: JWT_VALIDITY});
         return{
             tokenType:"Bearer",
-            accessToken:token
+            accessToken:token,
+            role : user.role.role_name,
+            user_id : user.user_id
         }
 
     }

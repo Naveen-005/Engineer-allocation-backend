@@ -245,4 +245,15 @@ CREATE PROJECT :
       ]
     }
 
+
+    {
+    "user_id" : "KV30",
+    "name" : "Test PM",
+    "email" : "testpm@email.com",
+    "password" : "qwerty",
+    "joined_at" : "2025-06-15T00:00:00Z",
+    "experience" : 3,
+    "role_id" : 2
+}
+
 */

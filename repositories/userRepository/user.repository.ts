@@ -29,7 +29,7 @@ class UserRepository {
       relations: {
         role: true,
         userSkills: { skill: true }, 
-        projectUsers: true,
+        projectUsers: {project : true},
         designations: { designation: true }, 
         notes: true,
         leadProjects: true,
