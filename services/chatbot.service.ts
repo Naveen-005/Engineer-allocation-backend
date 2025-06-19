@@ -82,16 +82,18 @@ export class ChatbotService {
 
     const intentType = await this.classifyIntentType(query);
     this.logger.info(`Intent type: ${intentType}`);
-
     if (intentType === "SMALL_TALK") {
-      const message = await this.generateSmallTalkResponse();
-      return {
-        intentType,
-        parsedIntent: { designation: null, skill: null },
-        results: [],
-        message,
-      };
-    }
+  const message = await this.generateSmallTalkResponse(query); // pass actual query
+  return {
+    intentType,
+    parsedIntent: { designation: null, skill: null },
+    results: [],
+    message,
+  };
+  
+
+}
+
 
     if (intentType === "UNKNOWN") {
       return {
@@ -167,13 +169,22 @@ ${engineerLines.length ? engineerLines.join("\n") : "  No matching engineers fou
 
   private async classifyIntentType(query: string): Promise<IntentType> {
     const systemPrompt = `
-You're an assistant that classifies queries into categories.
-Possible categories:
-- "RESOURCE_QUERY": if user is asking to find engineers, developers, team members, etc.
-- "SMALL_TALK": if user says hi, asks what you do, how you are, thanks, etc.
-- "UNKNOWN": if it’s unclear or irrelevant.
+You're an assistant that classifies user queries into categories.
 
-Return only one: RESOURCE_QUERY, SMALL_TALK, or UNKNOWN.
+Classify the user's input into one of the following:
+- "RESOURCE_QUERY": if the user is asking to find engineers, developers, team members, or resources.
+- "SMALL_TALK": if the user greets, says thanks, says things like "how are you", "good morning", "hello", "nice to meet you", or any non-task-specific phrase.
+- "UNKNOWN": if the intent is unclear or unrelated.
+
+Respond with only one: RESOURCE_QUERY, SMALL_TALK, or UNKNOWN.
+
+Examples:
+- "hi" → SMALL_TALK
+- "how are you?" → SMALL_TALK
+- "I need a React developer" → RESOURCE_QUERY
+- "nice to meet you" → SMALL_TALK
+- "can you help me find backend engineers?" → RESOURCE_QUERY
+- "what's the time?" → UNKNOWN
 `;
 
     const completion = await openai.chat.completions.create({
@@ -235,30 +246,47 @@ Examples:
     }
   }
 
-  private async generateSmallTalkResponse(): Promise<string> {
+  private async generateSmallTalkResponse(userInput: string): Promise<string> {
+  try {
     const systemPrompt = `
 You are a helpful and friendly assistant for an Engineer Allocation Platform.
 
-Generate a short message that:
-1. Greets the user naturally (e.g., Hi, Hello, Hey there)
-2. States your role (helping with engineer allocation)
-3. Gives 1–2 examples of questions the user can ask (like "Find React developers" or "Any backend engineers?")
+Respond to the user's small talk naturally. Your reply should:
+1. Acknowledge what the user said (e.g., "Nice to meet you too!" if they said that).
+2. Optionally add your role (helping with engineer allocation and tell the user that he should give either skill or designation).
+3. Be short, polite, and vary in tone.
 
-Keep it brief, polite, and vary the tone/phrasing each time.
+Examples:
+User: "Hi"
+→ "😊 Hey there! I'm here to help with engineer allocation by the required Skill or designation"
+
+User: "How are you?"
+→ "I'm doing great, thanks for asking! How can I help you today?"
+
+User: "Nice to meet you"
+→ "😊 Nice to meet you too! Let me know what kind of developer you need."
+
+Now reply to the user input accordingly.
 `;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: "User said hi. Generate the response." },
+        { role: "user", content: userInput }, // 🟢 USE ACTUAL INPUT HERE
       ],
       temperature: 0.7,
     });
 
-    return (
-      completion.choices[0].message.content?.trim() ||
-      "Hi! I'm here to help you with engineer allocation. You can ask about available developers or teams."
-    );
+    const reply = completion.choices[0].message.content?.trim();
+    return reply || this.getFallbackGreeting();
+  } catch (error) {
+    return this.getFallbackGreeting();
   }
+}
+private getFallbackGreeting(): string {
+  return "Hi! I'm here to help with engineer allocation. You can ask about available developers or teams.";
+}
+
+
 }
