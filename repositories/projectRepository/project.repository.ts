@@ -31,7 +31,9 @@ class ProjectRepository {
         lead: true,
         projectUsers: { user: true },
         notes: { author: true },
-        requirements: true,
+        requirements: {
+          designation: true,
+        },
       },
     });
   }
