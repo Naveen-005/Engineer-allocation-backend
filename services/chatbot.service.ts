@@ -114,14 +114,25 @@ export class ChatbotService {
       };
     }
 
-    return {
-      intentType,
-      parsedIntent,
-      results: engineers,
-      message: `✅ Found ${engineers.length} engineer(s):\n${engineers
-        .map((e) => `- ${e.name} (${e.email})`)
-        .join("\n")}`,
-    };
+    const details = [
+  parsedIntent.designation ? `• Designation: ${parsedIntent.designation}` : null,
+  parsedIntent.skill ? `• Skill: ${parsedIntent.skill}` : null,
+]
+  .filter(Boolean)
+  .join("\n");
+
+const engineerLines = engineers.map(
+  (e, i) => `  ${i + 1}. ${e.name}\n     ✉️ ${e.email}`
+);
+
+return {
+  intentType,
+  parsedIntent,
+  results: engineers,
+  message: `✅ Based on your request:
+${details ? details + "\n\n" : ""}👥 Available Engineers (${engineers.length}):
+${engineerLines.length ? engineerLines.join("\n") : "  No matching engineers found."}`,
+};
   }
 
   private async classifyIntentType(query: string): Promise<IntentType> {
