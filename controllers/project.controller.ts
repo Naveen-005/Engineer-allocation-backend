@@ -16,17 +16,19 @@ export default class ProjectController {
     router.post("/",auditLogMiddleware(AuditActionType.CREATE_PROJECT), this.createProject.bind(this));
     router.get("/", this.getAllProjects.bind(this));
     router.get("/requests", checkRole(["HR"]), this.getAdditionalRequests.bind(this));
-    router.get("/:id", this.getProjectById.bind(this));
+    router.post("/requirement", auditLogMiddleware(AuditActionType.REQUIREMENTS_UPDATE), this.addProjectRequirement.bind(this));
+    router.put("/requirement/:requirementId", auditLogMiddleware(AuditActionType.REQUIREMENTS_UPDATE), this.updateProjectRequirement.bind(this));
+    router.post("/requirement/:requirementId", this.setAsRequest.bind(this));
+    router.delete("/requirement/:requirementId", auditLogMiddleware(AuditActionType.REQUIREMENTS_UPDATE), this.deleteProjectRequirement.bind(this))
     router.get("/user/:userId", this.getProjectsByUserId.bind(this));
+    router.get("/:id", this.getProjectById.bind(this));
     router.put("/:id",auditLogMiddleware(AuditActionType.UPDATE_PROJECT), this.updateProject.bind(this));
     router.delete("/:id",auditLogMiddleware(AuditActionType.CLOSE_PROJECT), this.deleteProject.bind(this));
     router.post("/:id/engineer", auditLogMiddleware(AuditActionType.ASSIGN_USER), this.assignEngineerToProject.bind(this));
     router.delete("/:id/engineer", auditLogMiddleware(AuditActionType.REMOVE_USER), this.removeEngineerFromProject.bind(this));
     //router for project requirements
     
-    router.post("/requirement", auditLogMiddleware(AuditActionType.REQUIREMENTS_UPDATE), this.addProjectRequirement.bind(this));
-    router.put("/requirement/:requirementId", auditLogMiddleware(AuditActionType.REQUIREMENTS_UPDATE), this.updateProjectRequirement.bind(this));
-    router.delete("/requirement/:requirementId", auditLogMiddleware(AuditActionType.REQUIREMENTS_UPDATE), this.deleteProjectRequirement.bind(this))
+    
   }
 
 
@@ -143,6 +145,17 @@ export default class ProjectController {
     } catch (error) {
       next(error);
     }
+  }
+
+  async setAsRequest(req: Request, res: Response, next: NextFunction) {
+    try {
+      const requirementId = Number(req.params.requirementId);
+      await this.projectService.setAsRequest(requirementId);
+      res.status(200).send("Requirement set as requested successfully");
+    } catch (error) {
+      next(error);
+    }
+
   }
 
 
