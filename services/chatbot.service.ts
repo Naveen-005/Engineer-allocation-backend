@@ -34,6 +34,78 @@ export class ChatbotService {
   private userRepo = new UserRepository(dataSource.getRepository(User));
   private logger = LoggerService.getInstance(ChatbotService.name);
 
+  private skillSynonymMap: Record<string, string> = {
+    "js": "JavaScript",
+    "javascript": "JavaScript",
+    "py": "Python",
+    "python": "Python",
+    "java": "Java",
+    "react": "React",
+    "react.js": "React",
+    "node": "Node.js",
+    "nodejs": "Node.js",
+    "node.js": "Node.js",
+    "angular": "Angular",
+    "vue": "Vue.js",
+    "vuejs": "Vue.js",
+    "typescript": "TypeScript",
+    "ts": "TypeScript",
+    "c++": "C++",
+    "cpp": "C++",
+    "c#": "C#",
+    "csharp": "C#",
+    "sql": "SQL",
+    "mongodb": "MongoDB",
+    "postgres": "PostgreSQL",
+    "postgresql": "PostgreSQL",
+    "docker": "Docker",
+    "k8s": "Kubernetes",
+    "kubernetes": "Kubernetes",
+    "aws": "AWS",
+    "amazon web services": "AWS",
+    "azure": "Azure",
+    "git": "Git",
+    "jenkins": "Jenkins",
+    "figma": "Figma",
+    "adobe xd": "Adobe XD",
+    "selenium": "Selenium",
+    "jest": "Jest",
+    "spring": "Spring Boot",
+    "spring boot": "Spring Boot",
+    "django": "Django",
+  };
+
+  private designationSynonymMap: Record<string, string> = {
+    "senior engineer": "Senior Software Engineer",
+    "senior software engineer": "Senior Software Engineer",
+    "software engineer": "Software Engineer",
+    "developer": "Software Engineer",
+    "junior engineer": "Junior Software Engineer",
+    "junior software engineer": "Junior Software Engineer",
+    "tech lead": "Tech Lead",
+    "technical lead": "Tech Lead",
+    "project manager": "Project Manager",
+    "pm": "Project Manager",
+    "hr manager": "HR Manager",
+    "hr executive": "HR Executive",
+    "devops": "DevOps Engineer",
+    "devops engineer": "DevOps Engineer",
+    "qa": "QA Engineer",
+    "quality analyst": "QA Engineer",
+    "qa engineer": "QA Engineer",
+    "ui designer": "UI/UX Designer",
+    "ux designer": "UI/UX Designer",
+    "ui/ux": "UI/UX Designer",
+    "ui/ux designer": "UI/UX Designer",
+  };
+
+  private normalizeDesignation(rawDesignation: string): string {
+    const cleaned = rawDesignation.toLowerCase().trim();
+    return this.designationSynonymMap[cleaned] || rawDesignation;
+  }
+
+
+
   async processQuery(query: string): Promise<ChatbotResponse> {
     try {
       const { results, parsedIntent, intentType, message } = await this.handleQuery(query);
@@ -63,16 +135,18 @@ export class ChatbotService {
 
     const intentType = await this.classifyIntentType(query);
     this.logger.info(`Intent type: ${intentType}`);
-
     if (intentType === "SMALL_TALK") {
-      const message = await this.generateSmallTalkResponse();
-      return {
-        intentType,
-        parsedIntent: { designation: null, skill: null },
-        results: [],
-        message,
-      };
-    }
+  const message = await this.generateSmallTalkResponse(query); // pass actual query
+  return {
+    intentType,
+    parsedIntent: { designation: null, skill: null },
+    results: [],
+    message,
+  };
+  
+
+}
+
 
     if (intentType === "UNKNOWN") {
       return {
@@ -84,12 +158,23 @@ export class ChatbotService {
       };
     }
 
-    const parsedIntent = await this.extractIntent(query);
+    let parsedIntent = await this.extractIntent(query);
     this.logger.info(`Parsed intent: ${JSON.stringify(parsedIntent)}`);
 
     if (parsedIntent.designation?.toLowerCase() === "engineer") {
       this.logger.warn(`Generic designation \"${parsedIntent.designation}\" detected — ignoring designation filter.`);
       parsedIntent.designation = null;
+    }
+
+    // Normalize skill using synonym map
+    if (parsedIntent.skill) {
+      parsedIntent.skill = this.normalizeSkill(parsedIntent.skill);
+      this.logger.info(`Normalized skill: ${parsedIntent.skill}`);
+    }
+
+    if (parsedIntent.designation) {
+      parsedIntent.designation = this.normalizeDesignation(parsedIntent.designation);
+      this.logger.info(`Normalized designation: ${parsedIntent.designation}`);
     }
 
     if (!parsedIntent.designation && !parsedIntent.skill) {
@@ -114,25 +199,50 @@ export class ChatbotService {
       };
     }
 
-    return {
-      intentType,
-      parsedIntent,
-      results: engineers,
-      message: `✅ Found ${engineers.length} engineer(s):\n${engineers
-        .map((e) => `- ${e.name} (${e.email})`)
-        .join("\n")}`,
-    };
+    const details = [
+  parsedIntent.designation ? `• Designation: ${parsedIntent.designation}` : null,
+  parsedIntent.skill ? `• Skill: ${parsedIntent.skill}` : null,
+]
+  .filter(Boolean)
+  .join("\n");
+
+const engineerLines = engineers.map(
+  (e, i) => `  ${i + 1}. ${e.name}\n     ✉️ ${e.email}`
+);
+
+return {
+  intentType,
+  parsedIntent,
+  results: engineers,
+  message: `✅ Based on your request:
+${details ? details + "\n\n" : ""}👥 Available Engineers (${engineers.length}):
+${engineerLines.length ? engineerLines.join("\n") : "  No matching engineers found."}`,
+};
+  }
+
+  private normalizeSkill(rawSkill: string): string {
+    const cleaned = rawSkill.toLowerCase().replace(/\./g, "").trim();
+    return this.skillSynonymMap[cleaned] || rawSkill.toUpperCase();
   }
 
   private async classifyIntentType(query: string): Promise<IntentType> {
     const systemPrompt = `
-You're an assistant that classifies queries into categories.
-Possible categories:
-- "RESOURCE_QUERY": if user is asking to find engineers, developers, team members, etc.
-- "SMALL_TALK": if user says hi, asks what you do, how you are, thanks, etc.
-- "UNKNOWN": if it’s unclear or irrelevant.
+You're an assistant that classifies user queries into categories.
 
-Return only one: RESOURCE_QUERY, SMALL_TALK, or UNKNOWN.
+Classify the user's input into one of the following:
+- "RESOURCE_QUERY": if the user is asking to find engineers, developers, team members, or resources.
+- "SMALL_TALK": if the user greets, says thanks, says things like "how are you", "good morning", "hello", "nice to meet you", or any non-task-specific phrase.
+- "UNKNOWN": if the intent is unclear or unrelated.
+
+Respond with only one: RESOURCE_QUERY, SMALL_TALK, or UNKNOWN.
+
+Examples:
+- "hi" → SMALL_TALK
+- "how are you?" → SMALL_TALK
+- "I need a React developer" → RESOURCE_QUERY
+- "nice to meet you" → SMALL_TALK
+- "can you help me find backend engineers?" → RESOURCE_QUERY
+- "what's the time?" → UNKNOWN
 `;
 
     const completion = await openai.chat.completions.create({
@@ -194,30 +304,47 @@ Examples:
     }
   }
 
-  private async generateSmallTalkResponse(): Promise<string> {
+  private async generateSmallTalkResponse(userInput: string): Promise<string> {
+  try {
     const systemPrompt = `
 You are a helpful and friendly assistant for an Engineer Allocation Platform.
 
-Generate a short message that:
-1. Greets the user naturally (e.g., Hi, Hello, Hey there)
-2. States your role (helping with engineer allocation)
-3. Gives 1–2 examples of questions the user can ask (like "Find React developers" or "Any backend engineers?")
+Respond to the user's small talk naturally. Your reply should:
+1. Acknowledge what the user said (e.g., "Nice to meet you too!" if they said that).
+2. Optionally add your role (helping with engineer allocation and tell the user that he should give either skill or designation).
+3. Be short, polite, and vary in tone.
 
-Keep it brief, polite, and vary the tone/phrasing each time.
+Examples:
+User: "Hi"
+→ "😊 Hey there! I'm here to help with engineer allocation by the required Skill or designation"
+
+User: "How are you?"
+→ "I'm doing great, thanks for asking! How can I help you today?"
+
+User: "Nice to meet you"
+→ "😊 Nice to meet you too! Let me know what kind of developer you need."
+
+Now reply to the user input accordingly.
 `;
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: "User said hi. Generate the response." },
+        { role: "user", content: userInput }, // 🟢 USE ACTUAL INPUT HERE
       ],
       temperature: 0.7,
     });
 
-    return (
-      completion.choices[0].message.content?.trim() ||
-      "Hi! I'm here to help you with engineer allocation. You can ask about available developers or teams."
-    );
+    const reply = completion.choices[0].message.content?.trim();
+    return reply || this.getFallbackGreeting();
+  } catch (error) {
+    return this.getFallbackGreeting();
   }
+}
+private getFallbackGreeting(): string {
+  return "Hi! I'm here to help with engineer allocation. You can ask about available developers or teams.";
+}
+
+
 }

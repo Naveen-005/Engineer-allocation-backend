@@ -10,6 +10,7 @@ class AuditLogService {
 
   async createAuditLog(data: {
     actor_user_id: string;
+    actor_name: string;
     action_type: AuditActionType;
     change_summary?: string;
     timestamp?: Date;

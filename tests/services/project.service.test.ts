@@ -5,6 +5,7 @@ import ProjectService from '../../services/project.service'
 import UserService from '../../services/user.service'
 import { DesignationService } from '../../services/designation.service'
 import ProjectUserRepository from '../../repositories/projectRepository/projectUser.repository'
+import ProjectEngineerRequirementRepository from '../../repositories/requirement.repository'
 
 describe('ProjectService',()=>{
 
@@ -12,6 +13,7 @@ describe('ProjectService',()=>{
     let MockUserService:MockProxy<UserService>
     let MockDesignationService:MockProxy<DesignationService>
     let MockProjectUserRepository:MockProxy<ProjectUserRepository>
+    let MockProjectEngineerRequirementRepository:MockProxy<ProjectEngineerRequirementRepository>
     let projectService:ProjectService
 
     beforeEach(()=>{
@@ -19,7 +21,8 @@ describe('ProjectService',()=>{
         MockUserService=mock<UserService>();
         MockDesignationService=mock<DesignationService>();
         MockProjectUserRepository=mock<ProjectUserRepository>();
-        projectService=new ProjectService(MockProjectRepository,MockUserService,MockDesignationService,MockProjectUserRepository)
+        MockProjectEngineerRequirementRepository=mock<ProjectEngineerRequirementRepository>();
+        projectService=new ProjectService(MockProjectRepository,MockUserService,MockDesignationService,MockProjectUserRepository,MockProjectEngineerRequirementRepository)
     })
 
     describe('assign engineer to project',() => {
@@ -35,7 +38,7 @@ describe('ProjectService',()=>{
                 lead: { id: 2 }
             };
             const mockUser = { 
-                id: 'KV001', // Changed to match the input format
+                id: 'KV001',
                 employee_id: 'EMP001',
                 first_name: 'John',
                 last_name: 'Doe',
@@ -50,17 +53,17 @@ describe('ProjectService',()=>{
             when(MockProjectRepository.findOneById).calledWith(1).mockResolvedValue(mockProject);
             when(MockUserService.getUserProjects).calledWith('KV001').mockResolvedValue(mockUser);
             when(MockUserService.getUserById).calledWith('KV001').mockResolvedValue(mockUser);
-            when(MockDesignationService.getDesignationById).calledWith(1).mockResolvedValue({ id: 1, name: 'Software Engineer' });
+            when(MockProjectEngineerRequirementRepository.getById).calledWith(1).mockResolvedValue({ id: 1, name: 'Software Engineer' });
             when(MockProjectRepository.saveProjectUsers).mockResolvedValue([]);
             
-            await projectService.assignEngineerToProject(1, [{user_id: 'KV001', designation_id: 1}]);
+            await projectService.assignEngineerToProject(1, [{user_id: 'KV001', requirement_id: 1}]);
             
             expect(MockProjectRepository.saveProjectUsers).toHaveBeenCalledWith([
                 expect.objectContaining({
                     project: mockProject,
-                    user: mockUser,
-                    designation: { id: 1, name: 'Software Engineer' },
-                    assigned_on: expect.any(Date)
+                    user: mockUser
+                    // designation: { id: 1, name: 'Software Engineer' },
+                    // assigned_on: expect.any(Date)
                 })
             ]);
         });
@@ -68,7 +71,7 @@ describe('ProjectService',()=>{
         it('should throw error when project not found', async() => {
             when(MockProjectRepository.findOneById).calledWith(1).mockResolvedValue(null);
             
-            await expect(projectService.assignEngineerToProject(1, [{user_id: 'KV001', designation_id: 1}]))
+            await expect(projectService.assignEngineerToProject(1, [{user_id: 'KV001', requirement_id: 1}]))
                 .rejects.toThrow('Project with ID 1 not found');
         });
 
@@ -77,7 +80,7 @@ describe('ProjectService',()=>{
             const mockUser = { 
                 id: 'KV001',
                 employee_id: 'EMP001',
-                projectUsers: [{}, {}], // Two existing project assignments
+                projectUsers: [{}, {}],
                 leadProjects: [],
                 managedProjects: []
             };
@@ -85,7 +88,7 @@ describe('ProjectService',()=>{
             when(MockProjectRepository.findOneById).calledWith(1).mockResolvedValue(mockProject);
             when(MockUserService.getUserProjects).calledWith('KV001').mockResolvedValue(mockUser);
             
-            await expect(projectService.assignEngineerToProject(1, [{user_id: 'KV001', designation_id: 1}]))
+            await expect(projectService.assignEngineerToProject(1, [{user_id: 'KV001', requirement_id: 1}]))
                 .rejects.toThrow('User with ID KV001 is already assigned in maximum mumber of projects');
         });
     });

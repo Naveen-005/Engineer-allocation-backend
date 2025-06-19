@@ -336,6 +336,24 @@ class ProjectService {
       );
     }
   }
+
+  async setAsRequest(id){
+    try{
+
+      let requirement = await this.requirementRepository.getById(id);
+      if (!requirement) {
+        throw new HttpException(404, `Requirement with ID ${id} not found`);
+      }
+      requirement.is_requested = true;
+      await this.requirementRepository.save(requirement);
+      return
+    }catch (error) {
+      throw new HttpException(
+        500,
+        `Failed to set requirement as requested: ${error.message}`
+      );
+    }
+  }
 }
 
 export default ProjectService;
