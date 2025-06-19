@@ -19,8 +19,8 @@ export default class ProjectController {
     router.get("/:id", this.getProjectById.bind(this));
     router.get("/user/:userId", this.getProjectsByUserId.bind(this));
     router.put("/:id",auditLogMiddleware(AuditActionType.UPDATE_PROJECT), this.updateProject.bind(this));
-    router.delete("/:id", this.deleteProject.bind(this));
-    router.post("/:id/engineer", this.assignEngineerToProject.bind(this));
+    router.delete("/:id",auditLogMiddleware(AuditActionType.CLOSE_PROJECT), this.deleteProject.bind(this));
+    router.post("/:id/engineer", auditLogMiddleware(AuditActionType.ASSIGN_USER), this.assignEngineerToProject.bind(this));
     router.delete("/:id/engineer", auditLogMiddleware(AuditActionType.REMOVE_USER), this.removeEngineerFromProject.bind(this));
     //router for project requirements
     
@@ -186,15 +186,15 @@ export default class ProjectController {
       resp.status(201).send({"message":"Engineer assigned to project successfully"});
 
       // Audit log only after success
-      const auditLogRepo = new AuditLogRepository();
-      const actor_user_id = req.user.user_id;
-      const users = engineers.map(e => e.user_id).join(", ");
-      await auditLogRepo.create({
-        actor_user_id,
-        action_type: AuditActionType.ASSIGN_USER,
-        change_summary: `Assigned users [${users}] to project ${id}`,
-        timestamp: new Date(),
-      });
+      // const auditLogRepo = new AuditLogRepository();
+      // const actor_user_id = req.user.user_id;
+      // const users = engineers.map(e => e.user_id).join(", ");
+      // await auditLogRepo.create({
+      //   actor_user_id,
+      //   action_type: AuditActionType.ASSIGN_USER,
+      //   change_summary: `Assigned users [${users}] to project ${id}`,
+      //   timestamp: new Date(),
+      // });
 
 
       
