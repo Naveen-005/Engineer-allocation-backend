@@ -35,23 +35,76 @@ export class ChatbotService {
   private logger = LoggerService.getInstance(ChatbotService.name);
 
   private skillSynonymMap: Record<string, string> = {
-    "node.js": "NODEJS",
-    "nodejs": "NODEJS",
-    "node": "NODEJS",
-    "react.js": "REACT",
-    "react": "REACT",
+    "js": "JavaScript",
+    "javascript": "JavaScript",
+    "py": "Python",
+    "python": "Python",
+    "java": "Java",
+    "react": "React",
+    "react.js": "React",
+    "node": "Node.js",
+    "nodejs": "Node.js",
+    "node.js": "Node.js",
+    "angular": "Angular",
+    "vue": "Vue.js",
+    "vuejs": "Vue.js",
+    "typescript": "TypeScript",
+    "ts": "TypeScript",
+    "c++": "C++",
+    "cpp": "C++",
+    "c#": "C#",
+    "csharp": "C#",
+    "sql": "SQL",
+    "mongodb": "MongoDB",
+    "postgres": "PostgreSQL",
+    "postgresql": "PostgreSQL",
+    "docker": "Docker",
+    "k8s": "Kubernetes",
+    "kubernetes": "Kubernetes",
     "aws": "AWS",
     "amazon web services": "AWS",
-    "azure": "AZURE",
-    "flutter": "FLUTTER",
-    "vue": "VUEJS",
-    "vuejs": "VUEJS",
-    "nextjs": "NEXTJS",
-    "next.js": "NEXTJS",
-    "next": "NEXTJS",
-    "docker": "DOCKER",
-    "devops": "DOCKER", // Optional mapping
+    "azure": "Azure",
+    "git": "Git",
+    "jenkins": "Jenkins",
+    "figma": "Figma",
+    "adobe xd": "Adobe XD",
+    "selenium": "Selenium",
+    "jest": "Jest",
+    "spring": "Spring Boot",
+    "spring boot": "Spring Boot",
+    "django": "Django",
   };
+
+  private designationSynonymMap: Record<string, string> = {
+    "senior engineer": "Senior Software Engineer",
+    "senior software engineer": "Senior Software Engineer",
+    "software engineer": "Software Engineer",
+    "developer": "Software Engineer",
+    "junior engineer": "Junior Software Engineer",
+    "junior software engineer": "Junior Software Engineer",
+    "tech lead": "Tech Lead",
+    "technical lead": "Tech Lead",
+    "project manager": "Project Manager",
+    "pm": "Project Manager",
+    "hr manager": "HR Manager",
+    "hr executive": "HR Executive",
+    "devops": "DevOps Engineer",
+    "devops engineer": "DevOps Engineer",
+    "qa": "QA Engineer",
+    "quality analyst": "QA Engineer",
+    "qa engineer": "QA Engineer",
+    "ui designer": "UI/UX Designer",
+    "ux designer": "UI/UX Designer",
+    "ui/ux": "UI/UX Designer",
+    "ui/ux designer": "UI/UX Designer",
+  };
+
+  private normalizeDesignation(rawDesignation: string): string {
+    const cleaned = rawDesignation.toLowerCase().trim();
+    return this.designationSynonymMap[cleaned] || rawDesignation;
+  }
+
+
 
   async processQuery(query: string): Promise<ChatbotResponse> {
     try {
@@ -117,6 +170,11 @@ export class ChatbotService {
     if (parsedIntent.skill) {
       parsedIntent.skill = this.normalizeSkill(parsedIntent.skill);
       this.logger.info(`Normalized skill: ${parsedIntent.skill}`);
+    }
+
+    if (parsedIntent.designation) {
+      parsedIntent.designation = this.normalizeDesignation(parsedIntent.designation);
+      this.logger.info(`Normalized designation: ${parsedIntent.designation}`);
     }
 
     if (!parsedIntent.designation && !parsedIntent.skill) {
