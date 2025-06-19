@@ -34,11 +34,6 @@ export class ChatbotService {
   private userRepo = new UserRepository(dataSource.getRepository(User));
   private logger = LoggerService.getInstance(ChatbotService.name);
 
-  /**
-   * Public method exposed to the controller
-   * @param query user input message
-   * @returns structured bot response
-   */
   async processQuery(query: string): Promise<ChatbotResponse> {
     try {
       const { results, parsedIntent, intentType, message } = await this.handleQuery(query);
@@ -70,11 +65,12 @@ export class ChatbotService {
     this.logger.info(`Intent type: ${intentType}`);
 
     if (intentType === "SMALL_TALK") {
+      const message = await this.generateSmallTalkResponse();
       return {
         intentType,
         parsedIntent: { designation: null, skill: null },
         results: [],
-        message: "👋 Hello! I’m your assistant for engineer allocation. Try asking me things like:\n• 'Any React developers available?'\n• 'List backend engineers skilled in Node.js'",
+        message,
       };
     }
 
@@ -83,20 +79,26 @@ export class ChatbotService {
         intentType,
         parsedIntent: { designation: null, skill: null },
         results: [],
-        message: "🤖 I help with engineer allocation. You can ask me about available developers, skills, or teams!",
+        message:
+          "🤖 I help with engineer allocation. You can ask me about available developers, skills, or teams!",
       };
     }
 
-    // Handle RESOURCE_QUERY
     const parsedIntent = await this.extractIntent(query);
     this.logger.info(`Parsed intent: ${JSON.stringify(parsedIntent)}`);
+
+    if (parsedIntent.designation?.toLowerCase() === "engineer") {
+      this.logger.warn(`Generic designation \"${parsedIntent.designation}\" detected — ignoring designation filter.`);
+      parsedIntent.designation = null;
+    }
 
     if (!parsedIntent.designation && !parsedIntent.skill) {
       return {
         intentType,
         parsedIntent,
         results: [],
-        message: "⚠️ I couldn't detect a specific skill or role in your query. Try asking like:\n• 'Need a QA engineer'\n• 'Find Python developers'",
+        message:
+          "⚠️ I couldn't detect a specific skill or role in your query. Try asking like:\n• 'Need a QA engineer'\n• 'Find Python developers'",
       };
     }
 
@@ -108,7 +110,7 @@ export class ChatbotService {
         intentType,
         parsedIntent,
         results: [],
-        message: `🔍 No engineers found for "${query}". Try modifying your skill or designation.`,
+        message: `🔍 No engineers found for \"${query}\". Try modifying your skill or designation.`,
       };
     }
 
@@ -190,5 +192,32 @@ Examples:
       this.logger.error(`Failed to parse OpenAI response: ${err}`);
       return { designation: null, skill: null };
     }
+  }
+
+  private async generateSmallTalkResponse(): Promise<string> {
+    const systemPrompt = `
+You are a helpful and friendly assistant for an Engineer Allocation Platform.
+
+Generate a short message that:
+1. Greets the user naturally (e.g., Hi, Hello, Hey there)
+2. States your role (helping with engineer allocation)
+3. Gives 1–2 examples of questions the user can ask (like "Find React developers" or "Any backend engineers?")
+
+Keep it brief, polite, and vary the tone/phrasing each time.
+`;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: "User said hi. Generate the response." },
+      ],
+      temperature: 0.7,
+    });
+
+    return (
+      completion.choices[0].message.content?.trim() ||
+      "Hi! I'm here to help you with engineer allocation. You can ask about available developers or teams."
+    );
   }
 }

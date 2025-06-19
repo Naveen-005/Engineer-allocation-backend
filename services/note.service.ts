@@ -36,7 +36,6 @@ async addNote(dto: CreateNoteDto, authorId: string): Promise<Note> {
   return savedNote;
 }
 
-
   async listNotes(projectId: string): Promise<Note[]> {
     this.logger.info(`Fetching notes for project ${projectId}`);
 
