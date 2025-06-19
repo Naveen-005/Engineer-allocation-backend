@@ -9,6 +9,8 @@ import { AuditActionType } from "../entities/auditLog.entity";
 import { verifyRole, verifyUser } from "../utils/authorization";
 import { verify } from "crypto";
 import AuditLogRepository from "../repositories/auditLog.repository";
+import { Project } from "../entities/projectEntities/project.entity";
+import { Designation } from "../entities/userEntities/designation.entity";
 
 export default class ProjectController {
   
@@ -18,7 +20,7 @@ export default class ProjectController {
     router.get("/requests", checkRole(["HR"]), this.getAdditionalRequests.bind(this));
     router.get("/:id", this.getProjectById.bind(this));
     router.get("/user/:userId", this.getProjectsByUserId.bind(this));
-    router.put("/:id",auditLogMiddleware(AuditActionType.UPDATE_PROJECT), this.updateProject.bind(this));
+    router.put("/:id",auditLogMiddleware(AuditActionType.UPDATE_PROJECT), this.updateProject.bind(this)); 
     router.delete("/:id", this.deleteProject.bind(this));
     router.post("/:id/engineer", this.assignEngineerToProject.bind(this));
     router.delete("/:id/engineer", auditLogMiddleware(AuditActionType.REMOVE_USER), this.removeEngineerFromProject.bind(this));
@@ -92,6 +94,8 @@ export default class ProjectController {
       const id = Number(req.params.id);
       const updateProjectDto: UpdateProjectDto = req.body;
 
+      console.log(req.body);
+
       const updatedProject = await this.projectService.updateProject(
         id,
         updateProjectDto
@@ -109,8 +113,30 @@ export default class ProjectController {
   // Add a new project requirement
   async addProjectRequirement(req: Request, res: Response, next: NextFunction) {
     try {
-      const requirementData = req.body;
-      const newRequirement = await this.projectService.addProjectRequirement(requirementData);
+      const {
+        project_id,
+        designation_id,
+        required_count,
+        is_requested,
+        requirement_skills
+      } = req.body;
+
+      // Validate required fields
+      if (!project_id || !designation_id || required_count === undefined) {
+        throw new HttpException(400, 'Missing required fields');
+      }
+
+      // Get the project first (assuming you have a method to get it)
+      const project = await this.projectService.getProjectById(project_id);
+      
+      const newRequirement = await this.projectService.addProjectRequirement({
+        project: { id: project.id } as Project,
+        designation: { id: designation_id } as Designation,
+        required_count: required_count,
+        is_requested: is_requested || false, // default to false if not provided
+        requirement_skills: requirement_skills || [] // handle case where skills aren't provided
+      });
+
       res.status(201).json({
         message: "Project requirement added successfully",
         data: newRequirement,
@@ -118,7 +144,7 @@ export default class ProjectController {
     } catch (error) {
       next(error);
     }
-  }
+}
 
   // Update an existing project requirement
   async updateProjectRequirement(req: Request, res: Response, next: NextFunction) {

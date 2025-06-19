@@ -32,6 +32,9 @@ class ProjectRepository {
         notes: { author: true },
         requirements: {
           designation: true,
+          projectAssignments : {
+            user : true
+          }
         },
       },
     });
