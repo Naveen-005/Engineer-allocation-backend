@@ -3,10 +3,11 @@ version: "3.8"
 services:
   postgres-db:
     image: postgres
-    container_name: eap_db
+    container_name: eap_test_db
     ports:
-      - "5432:5432"
+      - "5450:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: test_db
     restart: unless-stopped
