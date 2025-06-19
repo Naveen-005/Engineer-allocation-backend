@@ -46,7 +46,13 @@ async getAllAdditionalRequests(): Promise<ProjectEngineerRequirement[]> {
   async getById(id: number): Promise<ProjectEngineerRequirement | null> {
     return this.repository.findOne({
       where: { id },
-      relations: ['requirementSkills', 'project', 'designation'],
+      relations:{
+        requirementSkills: {
+          skill: true
+        },
+        project: true,
+        designation: true
+      }
     });
   }
 }
