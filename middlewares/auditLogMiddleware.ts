@@ -37,7 +37,7 @@ export function auditLogMiddleware(actionType: AuditActionType) {
           change_summary = `Created project ${req.body.name}`;
           break;
         case AuditActionType.UPDATE_PROJECT:
-          change_summary = `Updated project ${req.body.name}`;
+          change_summary = `Updated project ${req.params.id}`;
           break;
         case AuditActionType.CLOSE_PROJECT:
           change_summary = `Closed project ${req.body.name}`;

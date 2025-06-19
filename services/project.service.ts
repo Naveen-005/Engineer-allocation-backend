@@ -14,6 +14,7 @@ import { Designation } from "../entities/userEntities/designation.entity";
 import { DesignationService } from "./designation.service";
 import ProjectEngineerRequirementRepository from "../repositories/requirement.repository";
 import { ProjectEngineerRequirementSkill } from "../entities/projectEntities/projectEngineerRequirementSkill.entity";
+import { Skill } from "../entities/skill.entity";
 
 class ProjectService {
   constructor(
@@ -23,60 +24,53 @@ class ProjectService {
     private projectUserRepository: ProjectUserRepository,
     private requirementRepository: ProjectEngineerRequirementRepository
   ) {}
-  async createProject(createProjectDto: CreateProjectDto): Promise<Project> {
-    console.log("here", createProjectDto.requirements);
-    try {
-      const newProject = new Project(
-        createProjectDto.project_id,
-        createProjectDto.name,
-        createProjectDto.startdate
-          ? new Date(createProjectDto.startdate)
-          : undefined,
-        createProjectDto.enddate
-          ? new Date(createProjectDto.enddate)
-          : undefined,
-        createProjectDto.status,
-        { id: createProjectDto.pmId } as User,
-        { id: createProjectDto.leadId } as User
-      );
-      if (
-        createProjectDto.requirements &&
-        createProjectDto.requirements.length > 0
-      ) {
+ async createProject(createProjectDto: CreateProjectDto): Promise<Project> {
+  console.log("here", createProjectDto.requirements);
+  try {
+    const newProject = new Project(
+      createProjectDto.project_id,
+      createProjectDto.name,
+      createProjectDto.startdate
+        ? new Date(createProjectDto.startdate)
+        : undefined,
+      createProjectDto.enddate
+        ? new Date(createProjectDto.enddate)
+        : undefined,
+      createProjectDto.status,
+      { id: createProjectDto.pmId } as User,
+      { id: createProjectDto.leadId } as User
+    );
+
+    const savedProject = await this.projectRepository.create(newProject);
+
+    if (createProjectDto.requirements && createProjectDto.requirements.length > 0) {
+      for (const req of createProjectDto.requirements) {
+        // Create requirement skills array properly
+        const requirementSkills = req.requirement_skills?.map(skill => {
+          const requirementSkill = new ProjectEngineerRequirementSkill();
+          requirementSkill.skill = { skill_id: skill.skill_id }  as Skill;
+          return requirementSkill;
+        }) || [];
+
+        console.log("skills" , requirementSkills)
+
+        await this.requirementRepository.create({
+          project: savedProject,
+          designation: { id: req.designation_id } as Designation,
+          required_count: req.required_count,
+          is_requested: req.is_requested,
+          requirementSkills: requirementSkills
+        });
       }
-
-      const savedProject = await this.projectRepository.create(newProject);
-
-      if (createProjectDto.requirements) {
-        const requirementRepo = new ProjectEngineerRequirementRepository();
-
-        //loop through each requirement
-        for (const req of createProjectDto.requirements) {
-          const savingreq = await requirementRepo.create({
-            project: savedProject,
-            designation: { id: req.designation_id } as Designation,
-            required_count: req.required_count,
-            is_requested: req.is_requested,
-            requirementSkills: req.requirement_skills.map((skill) =>
-              Object.assign(new ProjectEngineerRequirementSkill(), {
-                skill: { skill_id: skill.skill_id },
-              })
-            ),
-          });
-
-          console.log("savingreq", savingreq);
-        }
-        console.log("saved project", savedProject);
-        return savedProject;
-      }
-    } catch (error) {
-      throw new HttpException(
-        500,
-        `Failed to create project: ${error.message}`
-      );
     }
+    return savedProject;
+  } catch (error) {
+    throw new HttpException(
+      500,
+      `Failed to create project: ${error.message}`
+    );
   }
-
+}
   async getAllProjects(): Promise<Project[]> {
     try {
       const projects = await this.projectRepository.findMany();
@@ -195,12 +189,48 @@ class ProjectService {
     return requirementRepo.update(requirementId, updateData);
   }
   // Service for Adding Project Requirements Uses functions in requirement.repository.ts
+  // async addProjectRequirement(
+  //   requirementData: Partial<ProjectEngineerRequirement>
+  // ): Promise<ProjectEngineerRequirement> {
+  //   const requirementRepo = new ProjectEngineerRequirementRepository();
+  //   return requirementRepo.create(requirementData);
+  // }
+
   async addProjectRequirement(
-    requirementData: Partial<ProjectEngineerRequirement>
-  ): Promise<ProjectEngineerRequirement> {
-    const requirementRepo = new ProjectEngineerRequirementRepository();
-    return requirementRepo.create(requirementData);
+  requirementData: {
+    project: Project;
+    designation: Designation;
+    required_count: number;
+    is_requested: boolean;
+    requirement_skills?: { skill_id: number }[];
   }
+): Promise<ProjectEngineerRequirement> {
+  try {
+    // Create requirement skills array
+    const requirementSkills = requirementData.requirement_skills?.map(skill => {
+      const requirementSkill = new ProjectEngineerRequirementSkill();
+      requirementSkill.skill = { skill_id: skill.skill_id } as Skill;
+      return requirementSkill;
+    }) || [];
+
+    // Create the requirement with skills
+    const newRequirement = await this.requirementRepository.create({
+      project: requirementData.project,
+      designation: requirementData.designation,
+      required_count: requirementData.required_count,
+      is_requested: requirementData.is_requested,
+      requirementSkills: requirementSkills
+    });
+
+    return newRequirement;
+  } catch (error) {
+    throw new HttpException(
+      500,
+      `Failed to add project requirement: ${error.message}`
+    );
+  }
+}
+
   // Service for Deleting Project Requirements Uses functions in requirement.repository.ts
   async deleteProjectRequirement(requirementId: number): Promise<void> {
     const requirementRepo = new ProjectEngineerRequirementRepository();

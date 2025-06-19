@@ -20,7 +20,7 @@ export class UpdateUserDto {
   email: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   password: string;
 
   @IsOptional()
