@@ -34,6 +34,25 @@ export class ChatbotService {
   private userRepo = new UserRepository(dataSource.getRepository(User));
   private logger = LoggerService.getInstance(ChatbotService.name);
 
+  private skillSynonymMap: Record<string, string> = {
+    "node.js": "NODEJS",
+    "nodejs": "NODEJS",
+    "node": "NODEJS",
+    "react.js": "REACT",
+    "react": "REACT",
+    "aws": "AWS",
+    "amazon web services": "AWS",
+    "azure": "AZURE",
+    "flutter": "FLUTTER",
+    "vue": "VUEJS",
+    "vuejs": "VUEJS",
+    "nextjs": "NEXTJS",
+    "next.js": "NEXTJS",
+    "next": "NEXTJS",
+    "docker": "DOCKER",
+    "devops": "DOCKER", // Optional mapping
+  };
+
   async processQuery(query: string): Promise<ChatbotResponse> {
     try {
       const { results, parsedIntent, intentType, message } = await this.handleQuery(query);
@@ -84,12 +103,18 @@ export class ChatbotService {
       };
     }
 
-    const parsedIntent = await this.extractIntent(query);
+    let parsedIntent = await this.extractIntent(query);
     this.logger.info(`Parsed intent: ${JSON.stringify(parsedIntent)}`);
 
     if (parsedIntent.designation?.toLowerCase() === "engineer") {
       this.logger.warn(`Generic designation \"${parsedIntent.designation}\" detected — ignoring designation filter.`);
       parsedIntent.designation = null;
+    }
+
+    // Normalize skill using synonym map
+    if (parsedIntent.skill) {
+      parsedIntent.skill = this.normalizeSkill(parsedIntent.skill);
+      this.logger.info(`Normalized skill: ${parsedIntent.skill}`);
     }
 
     if (!parsedIntent.designation && !parsedIntent.skill) {
@@ -114,14 +139,30 @@ export class ChatbotService {
       };
     }
 
-    return {
-      intentType,
-      parsedIntent,
-      results: engineers,
-      message: `✅ Found ${engineers.length} engineer(s):\n${engineers
-        .map((e) => `- ${e.name} (${e.email})`)
-        .join("\n")}`,
-    };
+    const details = [
+  parsedIntent.designation ? `• Designation: ${parsedIntent.designation}` : null,
+  parsedIntent.skill ? `• Skill: ${parsedIntent.skill}` : null,
+]
+  .filter(Boolean)
+  .join("\n");
+
+const engineerLines = engineers.map(
+  (e, i) => `  ${i + 1}. ${e.name}\n     ✉️ ${e.email}`
+);
+
+return {
+  intentType,
+  parsedIntent,
+  results: engineers,
+  message: `✅ Based on your request:
+${details ? details + "\n\n" : ""}👥 Available Engineers (${engineers.length}):
+${engineerLines.length ? engineerLines.join("\n") : "  No matching engineers found."}`,
+};
+  }
+
+  private normalizeSkill(rawSkill: string): string {
+    const cleaned = rawSkill.toLowerCase().replace(/\./g, "").trim();
+    return this.skillSynonymMap[cleaned] || rawSkill.toUpperCase();
   }
 
   private async classifyIntentType(query: string): Promise<IntentType> {

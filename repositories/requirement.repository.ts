@@ -16,6 +16,10 @@ class ProjectEngineerRequirementRepository {
     return this.repository.save(requirement);
   }
 
+  async save(requirement){
+    await this.repository.save(requirement);
+  }
+
   async update(id: number, updateData: Partial<ProjectEngineerRequirement>): Promise<ProjectEngineerRequirement> {
     await this.repository.update(id, updateData);
     return this.repository.findOneBy({ id });

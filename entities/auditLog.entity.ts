@@ -34,6 +34,9 @@ export class AuditLog {
   @Column()
   actor_user_id: string;
 
+  @Column()
+  actor_name: string;
+
   @Column({
     type: "enum",
     enum: AuditActionType,

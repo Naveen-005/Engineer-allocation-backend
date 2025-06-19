@@ -24,7 +24,7 @@ export class ProjectUser extends AbstractEntity {
     if (requirement_id) this.requirement_id = requirement_id;
   }
 
-  @ManyToOne(() => Project, (project) => project.projectUsers)
+  @ManyToOne(() => Project, (project) => project.projectUsers, {eager:true})
   @JoinColumn({ name: "project_id" })
   project: Project;
 
