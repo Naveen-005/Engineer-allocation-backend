@@ -344,7 +344,7 @@ class ProjectService {
       if (!requirement) {
         throw new HttpException(404, `Requirement with ID ${id} not found`);
       }
-      requirement.is_requested = true;
+      requirement.is_requested = !requirement.is_requested;
       await this.requirementRepository.save(requirement);
       return
     }catch (error) {
