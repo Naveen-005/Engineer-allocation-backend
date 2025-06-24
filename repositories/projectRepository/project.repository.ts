@@ -34,7 +34,8 @@ class ProjectRepository {
           designation: true,
           projectAssignments:{
             user: true
-          }
+          },
+          requirementSkills : true
         },
       },
     });
