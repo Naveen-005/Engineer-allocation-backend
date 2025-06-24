@@ -28,7 +28,10 @@ export class ProjectUser extends AbstractEntity {
   @JoinColumn({ name: "project_id" })
   project: Project;
 
-  @ManyToOne(() => User, (user) => user.projectUsers)
+  @ManyToOne(() => User, (user) => user.projectUsers, {
+    cascade: true,
+    eager: true,
+  })
   @JoinColumn({ name: "user_id" })
   user: User;
 
