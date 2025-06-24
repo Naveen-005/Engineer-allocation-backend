@@ -20,6 +20,15 @@ class ProjectUserRepository {
       })
     }
 
+    async findById(id: number): Promise<ProjectUser | null> {
+      return await this.repository.findOne({
+        where: { id },
+        relations: {
+          user: true,
+          project: true,
+        },
+      });
+    }
 
     async update(projectUserAssignment) {
 

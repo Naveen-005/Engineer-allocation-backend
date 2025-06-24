@@ -28,6 +28,7 @@ export default class ProjectController {
     router.delete("/:id",auditLogMiddleware(AuditActionType.CLOSE_PROJECT), this.deleteProject.bind(this));
     router.post("/:id/engineer", auditLogMiddleware(AuditActionType.ASSIGN_USER), this.assignEngineerToProject.bind(this));
     router.delete("/:id/engineer", auditLogMiddleware(AuditActionType.REMOVE_USER), this.removeEngineerFromProject.bind(this));
+    router.put("/engineer/shadow/:projectUserId", this.toggleShadowStatus.bind(this));
     //router for project requirements
     
     
@@ -295,4 +296,21 @@ export default class ProjectController {
         next(err);
     }
   }
+
+  async toggleShadowStatus(req: Request, res: Response, next: NextFunction) {
+    try {
+      const projectUserId = Number(req.params.projectUserId);
+      const { is_shadow } = req.body;
+
+      if (typeof is_shadow !== "boolean") {
+        throw new HttpException(400, "Invalid value for is_shadow");
+      }
+
+      await this.projectService.toggleShadowStatus(projectUserId, is_shadow);
+      res.status(200).json({ message: "Shadow status updated successfully" });
+    } catch (error) {
+      next(error);
+    }
+  }
+
 }
