@@ -354,6 +354,16 @@ class ProjectService {
       );
     }
   }
+
+  async toggleShadowStatus(projectUserId: number, newValue: boolean): Promise<void> {
+    const projectUser = await this.projectUserRepository.findById(projectUserId);
+    if (!projectUser) {
+      throw new HttpException(404, "Engineer assignment not found");
+    }
+    projectUser.is_shadow = newValue;
+    await this.projectUserRepository.update(projectUser);
+  }
+
 }
 
 export default ProjectService;
